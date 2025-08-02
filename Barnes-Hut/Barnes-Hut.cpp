@@ -3,6 +3,8 @@
 
 #include "Barnes-Hut.h"
 #include <Vector>
+#include <raylib.h>
+
 
 using namespace std;
 
@@ -87,6 +89,8 @@ class Quadtree
 
 int main()
 {
+
+	Vector2 test = { 0,0 };
 	cout << "Hello CMake." << endl;
 	cout << "Hello CMake." << endl;
 	return 0;

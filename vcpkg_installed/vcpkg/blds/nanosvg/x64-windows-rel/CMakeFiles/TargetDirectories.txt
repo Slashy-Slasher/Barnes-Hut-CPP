@@ -1,0 +1,7 @@
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/nanosvg.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/nanosvgrast.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/edit_cache.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/rebuild_cache.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/list_install_components.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/install.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/vcpkg_installed/vcpkg/blds/nanosvg/x64-windows-rel/CMakeFiles/install/local.dir

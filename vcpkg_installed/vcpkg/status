@@ -1,0 +1,107 @@
+Package: vcpkg-cmake-config
+Version: 2024-05-23
+Architecture: x64-windows
+Multi-Arch: same
+Abi: fd22a6f3d7734e59a831d493cabc5c9e767c0864fa2a6a6de47c2a2bd0096581
+Status: install ok installed
+
+Package: vcpkg-cmake
+Version: 2024-04-23
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 62dc5bcd685e75b531448bfe6d023eccf8fa17f027ca0053cb3da750f3d66834
+Status: install ok installed
+
+Package: raylib
+Version: 5.5
+Depends: cgltf, dirent, drlibs, glfw3, miniaudio, mmx, nanosvg, qoi, stb, vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: c9205f6146aa4628b6378f4899bfc1163cd8299c66124a1da0eb34468ba33944
+Description: A simple and easy-to-use library to enjoy videogames programming
+Default-Features: use-audio
+Status: install ok installed
+
+Package: raylib
+Feature: use-audio
+Architecture: x64-windows
+Multi-Arch: same
+Description: Build raylib with audio module
+Status: install ok installed
+
+Package: stb
+Version: 2024-07-29
+Port-Version: 1
+Architecture: x64-windows
+Multi-Arch: same
+Abi: dc87abfe7a4859266c59a2b75614c522a91b29677f301a19e89ea6e02696f4df
+Description: public domain header-only libraries
+Status: install ok installed
+
+Package: qoi
+Version: 2023-08-10
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 624f3d7c7fac6425a028df7898e8661c2cd0cccf2fad518b55618452f0d108c3
+Description: The Quite OK Image Format for fast, lossless image compression
+Status: install ok installed
+
+Package: nanosvg
+Version: 2023-12-29
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: de3f195c119a4e4cdf39b8e6557a5d23c42d715b14c2ffcfb41b00193798d168
+Description: NanoSVG is a simple stupid single-header-file SVG parser. It is accompanied by a simple SVG rasterizer.
+Status: install ok installed
+
+Package: mmx
+Version: 2022-03-27
+Architecture: x64-windows
+Multi-Arch: same
+Abi: b51bdfc3a300a9e154db2bc535cb51bc0e79cc084cb642d66e4cbc8e546cc732
+Description: Single header libraries for C/C++
+Status: install ok installed
+
+Package: miniaudio
+Version: 0.11.22
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 4f71625538e323a2b4a8768ffd58651b9a08a15f693d6e0fcc013a6bc050743f
+Description: Audio playback and capture library written in C, in a single source file
+Status: install ok installed
+
+Package: glfw3
+Version: 3.4
+Port-Version: 1
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: c2e0b835b0bc49288697cffc6fe8ad1898054716d1a0a0f87f980f8dca48380e
+Description: GLFW is a free, Open Source, multi-platform library for OpenGL, OpenGL ES and Vulkan application development. It provides a simple, platform-independent API for creating windows, contexts and surfaces, reading input, handling events, etc.
+Status: install ok installed
+
+Package: drlibs
+Version: 2023-08-16
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 75d85ea60f746e63911ae478aba52f6f1c04d6c85595d3bac5d697b47bd4efef
+Description: Single-file audio decoding libraries for C/C++
+Status: install ok installed
+
+Package: dirent
+Version: 1.26
+Architecture: x64-windows
+Multi-Arch: same
+Abi: ae1e506d7603c57c440f91f90dd7b07cf9577eabcfb2500643391b5392e7826c
+Description: Dirent is a C/C++ programming interface that allows programmers to retrieve information about files and directories under Linux/UNIX. This project provides Linux compatible Dirent interface for Microsoft Windows.
+Status: install ok installed
+
+Package: cgltf
+Version: 1.14
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 5795970b13e41297c78a3c7aa6de21a74060b51fc8e81cfaa66d9d4ce6210ab2
+Description: Single-file glTF 2.0 loader and writer written in C99
+Status: install ok installed
+

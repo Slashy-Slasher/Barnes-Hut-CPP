@@ -8,10 +8,8 @@
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "installDir": "${sourceDir}/out/install/${presetName}",
           "cacheVariables": {
-            "CMAKE_C_COMPILER": "cl.exe",
-            "CMAKE_CXX_COMPILER": "cl.exe",
-            "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-
+            "CMAKE_TOOLCHAIN_FILE": "D:/visual studio/vs/VC/vcpkg/scripts/buildsystems/vcpkg.cmake",
+            "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
           },
             "condition": {
                 "type": "equals",

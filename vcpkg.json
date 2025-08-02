@@ -1,0 +1,10 @@
+{
+  "name": "barnes-hut",
+  "version-string": "0.1.0",
+  "description": "Barnes-Hut gravitational simulation using raylib",
+  "dependencies": [
+    "raylib"
+  ],
+  "default-features": [],
+  "builtin-baseline": "903956eff7cb94774a9e805ff573c000afc43e3e"
+}

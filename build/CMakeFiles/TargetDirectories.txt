@@ -1,0 +1,3 @@
+C:/Users/Alexander/source/repos/Barnes-Hut/build/CMakeFiles/Barnes-Hut.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Alexander/source/repos/Barnes-Hut/build/CMakeFiles/ZERO_CHECK.dir
