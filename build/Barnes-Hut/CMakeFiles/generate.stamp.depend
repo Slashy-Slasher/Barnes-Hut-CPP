@@ -1,7 +1,0 @@
-# CMake generation dependency list for this directory.
-C:/Users/Alexander/source/repos/Barnes-Hut/Barnes-Hut/CMakeLists.txt
-C:/vcpkg/installed/x64-windows/share/raylib/raylib-config-version.cmake
-C:/vcpkg/installed/x64-windows/share/raylib/raylib-config.cmake
-D:/visual studio/vs/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.28/Modules/FindPackageHandleStandardArgs.cmake
-D:/visual studio/vs/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.28/Modules/FindPackageMessage.cmake
-D:/visual studio/vs/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.28/Modules/FindPkgConfig.cmake
