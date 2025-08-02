@@ -2,17 +2,17 @@
 //
 
 #include "Barnes-Hut.h"
-#include <raylib>
-#include <iomanip>
-#include <cmath>
-#include <random>
+#include <Vector>
 
 using namespace std;
 
 
 class Planet
 {
+	Planet()
+	{
 
+	}
 };
 
 class Quadtree
@@ -35,8 +35,8 @@ class Quadtree
 	bool isRoot;
 
 	vector<Planet> region_planets;	//All planets in the region
-	float combined_planet_mass;
-
+	float combined_planet_mass;		//Mass of the region
+	vector<float> mass_center;		//Center of Mass 
 
 
 	float calculate_region_mass()
@@ -46,14 +46,24 @@ class Quadtree
 
 	void check_root()
 	{
-		if (parent == is_null_pointer)
+		if (parent == nullptr)
 		{
 			isRoot = true;
 		}
 	}
 
+	vector<Planet> points_in_region(float x, float y, float w, float h, vector<Planet> region_planets)
+	{
+	}
+
 	void subdivide()
 	{
+		++depth;
+
+		if (region_planets.size() > max && depth < 100)
+		{
+
+		}
 
 	}
 
@@ -68,6 +78,8 @@ class Quadtree
 		this->depth = depth;
 		this->max = max;
 		check_root();	//Determines if the Quadtree has a parent node and configures the bool accordingly
+
+		this->width = abs(x - w);
 		this->combined_planet_mass = calculate_region_mass();
 	}
 
@@ -75,6 +87,7 @@ class Quadtree
 
 int main()
 {
+	cout << "Hello CMake." << endl;
 	cout << "Hello CMake." << endl;
 	return 0;
 }
