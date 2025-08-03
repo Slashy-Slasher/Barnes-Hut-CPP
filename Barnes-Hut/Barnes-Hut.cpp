@@ -11,14 +11,22 @@ using namespace std;
 
 class Planet
 {
+public:
+	float mass;
+	float center;
+	vector<Vector2> area_points;
+
+
+
 	Planet()
 	{
-
+		
 	}
 };
 
 class Quadtree
 {
+public:
 	float x;			//Top x_left corner of the area
 	float y;			//Top y_left corner of the area
 	float w;			//Bottom x_right corner of the area
@@ -56,6 +64,13 @@ class Quadtree
 
 	vector<Planet> points_in_region(float x, float y, float w, float h, vector<Planet> region_planets)
 	{
+		//Take a list of all planets within the tree
+		//Return the a list off all planets within the sector
+		for (size_t i = 0; i < region_planets.size(); i++)
+		{
+
+		}
+
 	}
 
 	void subdivide()
@@ -89,10 +104,45 @@ class Quadtree
 
 int main()
 {
+	// Initialization
+   //--------------------------------------------------------------------------------------
+	const int screenWidth = 800;
+	const int screenHeight = 800;
 
+	InitWindow(screenWidth, screenHeight, "Barnes-Hut-Simulation"); // Initialize window with dimensions and title
+
+	SetTargetFPS(60); // Set desired framerate (frames-per-second)
+
+
+
+	//--------------------------------------------------------------------------------------
+
+
+	vector<Planet> region_planets;	//All planets in the region
+	region_planets.push_back(Planet());
 	Vector2 test = { 0,0 };
 	cout << "Hello CMake." << endl;
-	cout << "Hello CMake." << endl;
+	cout << "Hello CMake. " << test.x<<endl;
+
+	Quadtree* testNull = nullptr;
+
+	Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
+	
+	while (!WindowShouldClose())
+	{
+		BeginDrawing();
+		ClearBackground(RAYWHITE);
+		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw 
+
+		DrawFPS(5, 0);
+
+		EndDrawing(); // End drawing and swap buffers
+	}
+
+
+	CloseWindow(); // Close window and unload OpenGL context
+
+
 	return 0;
 }
 
