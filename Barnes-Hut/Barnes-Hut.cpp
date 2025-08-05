@@ -17,6 +17,8 @@ public:
 	float radius;
 	float color;
 	float id;
+
+	bool stable;
 	
 
 	Vector2 direction;
@@ -25,11 +27,12 @@ public:
 
 	vector<Vector2> area_points;	//Planned Experimental for now
 
-	Planet(float mass, Vector2 position, float radius)
+	Planet(float mass, Vector2 position, Vector2 force, float radius, bool stable)
 	{
 		this->mass = mass;
 		this->position = position;
 		this->radius = radius;
+		this->stable = stable;
 	}
 	/*
 	void apply_force()
@@ -139,21 +142,23 @@ Method which applies N^2 Newtonian Gravity
 
 void gravity(vector<Planet>& planets)
 {
-	float g = 0.01;
+	float gravity = 10;
 	float distance = 0.0f;
 	float force = 0.0f;
 	Vector2 dir = { 0, 0 };
 	
 	for (size_t i = 0; i < planets.size(); i++)
 	{
+		planets[i].force = { 0, 0 }; // Reset force before summing
 		for (size_t g = 0; g < planets.size(); g++)
 		{
-			if (planets[i].id != planets[g].id)
+			if (planets[i].id != planets[g].id && planets[i].stable == true)
 			{
 				//Force = (g*m1*m2)/(r_2)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
-				force = (g * planets[i].mass * planets[g].mass) / (distance * distance);
+				force = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
 				planets[i].direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
+				cout << "Force: " << force << endl;
 				planets[i].force += { planets[i].direction.x * force, planets[i].direction.y * force };
 			}
 		}
@@ -171,6 +176,20 @@ void IDize_vector(vector<Planet>& planets)
 		planets[i].id = i;
 	}
 }
+void apply_force(vector<Planet>& planets)
+{
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		planets[i].position += planets[i].force;
+	}
+}
+void print_positions(vector<Planet>& planets)
+{
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		cout << planets[i].id << ": {" << planets[i].position.x  << ", "  << planets[i].position.y << "}" << endl;
+	}
+}
 
 
 int main()
@@ -182,7 +201,7 @@ int main()
 
 	InitWindow(screenWidth, screenHeight, "Barnes-Hut-Simulation"); // Initialize window with dimensions and title
 
-	SetTargetFPS(60); // Set desired framerate (frames-per-second)
+	SetTargetFPS(1); // Set desired framerate (frames-per-second)
 
 	Vector2 planetPos = {screenWidth/2, screenHeight/2};
 	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2 };
@@ -190,8 +209,8 @@ int main()
 
 	vector<Planet> region_planets;	//All planets in the region
 
-	region_planets.push_back(Planet(100, planetPos, 30));
-	region_planets.push_back(Planet(100, planetPos2, 10));
+	region_planets.push_back(Planet(100, planetPos, { 0 , 0 }, 30, false));
+	region_planets.push_back(Planet(100, planetPos2, { 0 , 2 }, 10, true));
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
 	
 	for (size_t i = 0; i < region_planets.size(); i++)
@@ -217,6 +236,12 @@ int main()
 		ClearBackground(BLACK);
 		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw 
 		DrawFPS(5, 0);
+
+		print_positions(region_planets);
+		gravity(region_planets);
+		print_positions(region_planets);
+
+		apply_force(region_planets);
 		render(region_planets);
 
 		EndDrawing(); // End drawing and swap buffers
