@@ -4,6 +4,7 @@
 #include "Barnes-Hut.h"
 #include <Vector>
 #include <raylib.h>
+#include <raymath.h>
 
 
 using namespace std;
@@ -24,19 +25,18 @@ public:
 
 	vector<Vector2> area_points;	//Planned Experimental for now
 
-	Planet(float mass, Vector2 position, float radius, Vector2 force)
+	Planet(float mass, Vector2 position, float radius)
 	{
 		this->mass = mass;
 		this->position = position;
 		this->radius = radius;
-		this->force = force;
 	}
-
+	/*
 	void apply_force()
 	{
 
 	}
-
+	*/
 };
 
 class Quadtree
@@ -118,6 +118,10 @@ public:
 };
 
 
+/*
+Renders every planet in the Universe
+*/
+
 void render(vector<Planet> planets)	//This will render all planets
 {
 	for (size_t i = 0; i < planets.size(); i++)
@@ -126,20 +130,39 @@ void render(vector<Planet> planets)	//This will render all planets
 	}
 }
 
-void gravity(vector<Planet> planets)
+
+
+/*
+Method which applies N^2 Newtonian Gravity
+- This method of applying force should only be applied when the planets are very close(Most accurate)
+*/
+
+void gravity(vector<Planet>& planets)
 {
 	float g = 0.01;
+	float distance = 0.0f;
+	float force = 0.0f;
+	Vector2 dir = { 0, 0 };
+	
 	for (size_t i = 0; i < planets.size(); i++)
 	{
 		for (size_t g = 0; g < planets.size(); g++)
 		{
 			if (planets[i].id != planets[g].id)
 			{
-				
+				//Force = (g*m1*m2)/(r_2)
+				distance = Vector2Distance(planets[i].position, planets[g].position);
+				force = (g * planets[i].mass * planets[g].mass) / (distance * distance);
+				planets[i].direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
+				planets[i].force += { planets[i].direction.x * force, planets[i].direction.y * force };
 			}
 		}
 	}
 }
+
+/*
+Simple method which will take the array reference and apply an ID to each planet
+*/
 
 void IDize_vector(vector<Planet>& planets)
 {
