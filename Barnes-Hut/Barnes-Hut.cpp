@@ -13,15 +13,30 @@ class Planet
 {
 public:
 	float mass;
-	float center;
-	vector<Vector2> area_points;
+	float radius;
+	float color;
+	float id;
+	
 
+	Vector2 direction;
+	Vector2 force;
+	Vector2 position;
 
+	vector<Vector2> area_points;	//Planned Experimental for now
 
-	Planet()
+	Planet(float mass, Vector2 position, float radius, Vector2 force)
 	{
-		
+		this->mass = mass;
+		this->position = position;
+		this->radius = radius;
+		this->force = force;
 	}
+
+	void apply_force()
+	{
+
+	}
+
 };
 
 class Quadtree
@@ -102,6 +117,39 @@ public:
 
 };
 
+
+void render(vector<Planet> planets)	//This will render all planets
+{
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		DrawCircle(planets[i].position.x, planets[i].position.y, planets[i].radius, RAYWHITE);
+	}
+}
+
+void gravity(vector<Planet> planets)
+{
+	float g = 0.01;
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		for (size_t g = 0; g < planets.size(); g++)
+		{
+			if (planets[i].id != planets[g].id)
+			{
+				
+			}
+		}
+	}
+}
+
+void IDize_vector(vector<Planet>& planets)
+{
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		planets[i].id = i;
+	}
+}
+
+
 int main()
 {
 	// Initialization
@@ -113,28 +161,40 @@ int main()
 
 	SetTargetFPS(60); // Set desired framerate (frames-per-second)
 
+	Vector2 planetPos = {screenWidth/2, screenHeight/2};
+	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2 };
+
+
+	vector<Planet> region_planets;	//All planets in the region
+
+	region_planets.push_back(Planet(100, planetPos, 30));
+	region_planets.push_back(Planet(100, planetPos2, 10));
+	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
+	
+	for (size_t i = 0; i < region_planets.size(); i++)
+	{
+		cout << "i: " << region_planets[i].id << endl;
+	}
+
+
+	Vector2 test = { 0,0 };
+	cout << "Hello CMake." << endl;
+	cout << "Hello CMake. " << test.x<<endl;
+	cout << region_planets.size();
+	Quadtree* testNull = nullptr;
+
+	Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
 
 
 	//--------------------------------------------------------------------------------------
 
-
-	vector<Planet> region_planets;	//All planets in the region
-	region_planets.push_back(Planet());
-	Vector2 test = { 0,0 };
-	cout << "Hello CMake." << endl;
-	cout << "Hello CMake. " << test.x<<endl;
-
-	Quadtree* testNull = nullptr;
-
-	Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
-	
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(BLACK);
 		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw 
-
 		DrawFPS(5, 0);
+		render(region_planets);
 
 		EndDrawing(); // End drawing and swap buffers
 	}
