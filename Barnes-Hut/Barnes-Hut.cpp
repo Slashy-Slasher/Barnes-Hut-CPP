@@ -19,10 +19,20 @@ public:
 	float id;
 
 	bool stable;
-	
 
-	Vector2 direction;
+
+
+	//Find force with Gravity
+	//Find acceleration from force and mass(f/m)
+	//Apply (acceleration * dt) * direction{ x, y } to velocity
+	//Postion += velocity*dt
+
 	Vector2 force;
+	//Vector2 direction; Removing direction because it makes things harder and can just be stored in force
+	Vector2 acceleration;
+	Vector2 velocity;
+
+
 	Vector2 position;
 
 	vector<Vector2> area_points;	//Planned Experimental for now
@@ -34,12 +44,26 @@ public:
 		this->radius = radius;
 		this->stable = stable;
 	}
-	/*
-	void apply_force()
-	{
 
+
+
+
+	void set_acceleration()
+	{
+		this->acceleration = { this->force.x / this->mass, this->force.y / this->mass };
 	}
-	*/
+	void apply_acceleration(float delta_time)
+	{
+		Vector2 new_velocity = { this->acceleration.x * delta_time, this->acceleration.y * delta_time };
+		this->velocity = Vector2Add(this->velocity, new_velocity);
+	}
+	void update_position()
+	{
+		set_acceleration();
+		apply_acceleration(GetFrameTime());
+		this->position += this->velocity;
+	}
+
 };
 
 class Quadtree
@@ -142,11 +166,11 @@ Method which applies N^2 Newtonian Gravity
 
 void gravity(vector<Planet>& planets)
 {
-	float gravity = 10;
+	float gravity = .00000001;
 	float distance = 0.0f;
-	float force = 0.0f;
-	Vector2 dir = { 0, 0 };
-	
+	float force_1d = 0.0f;	//Force in 1 dimension
+	Vector2 direction;
+
 	for (size_t i = 0; i < planets.size(); i++)
 	{
 		planets[i].force = { 0, 0 }; // Reset force before summing
@@ -156,11 +180,17 @@ void gravity(vector<Planet>& planets)
 			{
 				//Force = (g*m1*m2)/(r_2)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
-				force = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
-				planets[i].direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
-				cout << "Force: " << force << endl;
-				planets[i].force += { planets[i].direction.x * force, planets[i].direction.y * force };
+				direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
+				force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
+				planets[i].force += { direction.x* force_1d, direction.y* force_1d };
 			}
+		}
+	}
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		if (planets[i].stable == true)
+		{
+			planets[i].update_position();
 		}
 	}
 }
@@ -187,7 +217,7 @@ void print_positions(vector<Planet>& planets)
 {
 	for (size_t i = 0; i < planets.size(); i++)
 	{
-		cout << planets[i].id << ": {" << planets[i].position.x  << ", "  << planets[i].position.y << "}" << endl;
+		cout << planets[i].id << ": {" << planets[i].position.x << ", " << planets[i].position.y << "}" << endl;
 	}
 }
 
@@ -203,7 +233,7 @@ int main()
 
 	SetTargetFPS(1); // Set desired framerate (frames-per-second)
 
-	Vector2 planetPos = {screenWidth/2, screenHeight/2};
+	Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
 	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2 };
 
 
@@ -212,7 +242,7 @@ int main()
 	region_planets.push_back(Planet(100, planetPos, { 0 , 0 }, 30, false));
 	region_planets.push_back(Planet(100, planetPos2, { 0 , 2 }, 10, true));
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
-	
+
 	for (size_t i = 0; i < region_planets.size(); i++)
 	{
 		cout << "i: " << region_planets[i].id << endl;
@@ -221,7 +251,7 @@ int main()
 
 	Vector2 test = { 0,0 };
 	cout << "Hello CMake." << endl;
-	cout << "Hello CMake. " << test.x<<endl;
+	cout << "Hello CMake. " << test.x << endl;
 	cout << region_planets.size();
 	Quadtree* testNull = nullptr;
 
