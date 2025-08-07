@@ -37,10 +37,11 @@ public:
 
 	vector<Vector2> area_points;	//Planned Experimental for now
 
-	Planet(float mass, Vector2 position, Vector2 force, float radius, bool stable)
+	Planet(float mass, Vector2 position, Vector2 force, float radius, bool stable)	
 	{
 		this->mass = mass;
 		this->position = position;
+		this->force = force;
 		this->radius = radius;
 		this->stable = stable;
 	}
@@ -57,12 +58,23 @@ public:
 		Vector2 new_velocity = { this->acceleration.x * delta_time, this->acceleration.y * delta_time };
 		this->velocity = Vector2Add(this->velocity, new_velocity);
 	}
-	void update_position()
+	void update_position(float delta_time)
 	{
 		set_acceleration();
-		apply_acceleration(GetFrameTime());
-		this->position += this->velocity;
+		apply_acceleration(delta_time);
+		Vector2 velocity_dt = { this->velocity.x * delta_time, this->velocity.y * delta_time };
+		this->position += velocity_dt;
 	}
+
+	void telemetry()
+	{
+		
+		cout << "ID: " << this->id
+			<< " Force: (" << this->force.x << ", " << this->force.y << ")"
+			<< " Accel: (" << this->acceleration.x << ", " << this->acceleration.y << ")"
+			<< " Vel: (" << this->velocity.x << ", " << this->velocity.y << ")" << endl;
+	}
+
 
 };
 
@@ -166,7 +178,7 @@ Method which applies N^2 Newtonian Gravity
 
 void gravity(vector<Planet>& planets)
 {
-	float gravity = .00000001;
+	float gravity = 1e-44f;
 	float distance = 0.0f;
 	float force_1d = 0.0f;	//Force in 1 dimension
 	Vector2 direction;
@@ -176,21 +188,27 @@ void gravity(vector<Planet>& planets)
 		planets[i].force = { 0, 0 }; // Reset force before summing
 		for (size_t g = 0; g < planets.size(); g++)
 		{
-			if (planets[i].id != planets[g].id && planets[i].stable == true)
+			if (planets[i].id != planets[g].id)
 			{
+				planets[i].telemetry();
 				//Force = (g*m1*m2)/(r_2)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
+				cout << planets[i].id << "'s Distance: " << distance << endl;
 				direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
+				cout << planets[i].id << "'s Direction:" << direction.x << " , " << direction.y << endl;
+				std::cout << "Actual Mass: " << planets[i].mass << std::endl;
 				force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
+				cout << planets[i].id << "'s Force:" << direction.x << " , " << direction.y << endl;
 				planets[i].force += { direction.x* force_1d, direction.y* force_1d };
+				planets[i].telemetry();
 			}
 		}
 	}
 	for (size_t i = 0; i < planets.size(); i++)
 	{
-		if (planets[i].stable == true)
+		if (planets[i].stable == false)
 		{
-			planets[i].update_position();
+			planets[i].update_position(GetFrameTime());
 		}
 	}
 }
@@ -206,6 +224,7 @@ void IDize_vector(vector<Planet>& planets)
 		planets[i].id = i;
 	}
 }
+/*
 void apply_force(vector<Planet>& planets)
 {
 	for (size_t i = 0; i < planets.size(); i++)
@@ -213,6 +232,7 @@ void apply_force(vector<Planet>& planets)
 		planets[i].position += planets[i].force;
 	}
 }
+*/
 void print_positions(vector<Planet>& planets)
 {
 	for (size_t i = 0; i < planets.size(); i++)
@@ -234,13 +254,15 @@ int main()
 	SetTargetFPS(1); // Set desired framerate (frames-per-second)
 
 	Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
-	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2 };
+	Vector2 planetPos2 = { (screenWidth / 2) + 800, screenHeight / 2};
 
 
 	vector<Planet> region_planets;	//All planets in the region
 
-	region_planets.push_back(Planet(100, planetPos, { 0 , 0 }, 30, false));
-	region_planets.push_back(Planet(100, planetPos2, { 0 , 2 }, 10, true));
+	region_planets.push_back(Planet(100, planetPos, { 0 , 0 }, 30, true));
+	region_planets.push_back(Planet(100, planetPos2, { 0 , 1 }, 10, false));
+
+
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
 
 	for (size_t i = 0; i < region_planets.size(); i++)
@@ -250,9 +272,7 @@ int main()
 
 
 	Vector2 test = { 0,0 };
-	cout << "Hello CMake." << endl;
-	cout << "Hello CMake. " << test.x << endl;
-	cout << region_planets.size();
+	cout << "Number of planets: " << region_planets.size() << endl;
 	Quadtree* testNull = nullptr;
 
 	Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
@@ -268,10 +288,11 @@ int main()
 		DrawFPS(5, 0);
 
 		print_positions(region_planets);
-		gravity(region_planets);
-		print_positions(region_planets);
+		//region_planets[1].telemetry();
 
-		apply_force(region_planets);
+		gravity(region_planets);
+
+
 		render(region_planets);
 
 		EndDrawing(); // End drawing and swap buffers
