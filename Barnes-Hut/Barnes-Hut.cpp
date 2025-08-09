@@ -27,27 +27,36 @@ public:
 	//Apply (acceleration * dt) * direction{ x, y } to velocity
 	//Postion += velocity*dt
 
-	Vector2 force;
+	Vector2 force = {0, 0};
 	//Vector2 direction; Removing direction because it makes things harder and can just be stored in force
 	Vector2 acceleration = {0, 0};
 	Vector2 velocity = {0, 0};
 
 
 	Vector2 position;
-
+		
 	vector<Vector2> area_points;	//Planned Experimental for now
 
-	Planet(float mass, Vector2 position, Vector2 force, float radius, bool stable)	
+	Planet(float mass, Vector2 position, float radius, bool stable)	
 	{
 		this->mass = mass;
 		this->position = position;
-		this->force = force;
+
+
+		//this->velocity = Vector2Add(this->velocity, return_velocity_delta_from_force(force, GetFrameTime()));
+
+
+		//cout << "Starting Velocity: { " << this->velocity.x << ", " << this->velocity.y  << " }" << endl;
 		this->radius = radius;
 		this->stable = stable;
 	}
 
-
-
+	Vector2 return_velocity_delta_from_force(Vector2 force, float delta_time)
+	{
+		Vector2 acceleration = { force.x / this->mass, force.y / this->mass };
+		Vector2 new_velocity = { acceleration.x * delta_time, acceleration.y * delta_time };
+		return new_velocity;
+	}
 
 	void set_acceleration()
 	{
@@ -55,8 +64,8 @@ public:
 	}
 	void apply_acceleration(float delta_time)
 	{
-		cout << this->id << "'s: Delta Time: " << delta_time << endl;
-		Vector2 new_velocity = { this->acceleration.x * delta_time, this->acceleration.y * delta_time };
+		Vector2 new_velocity = { 0,0 };
+		new_velocity = { this->acceleration.x * delta_time, this->acceleration.y * delta_time };
 		this->velocity = Vector2Add(this->velocity, new_velocity);
 	}
 	void update_position(float delta_time)
@@ -73,7 +82,6 @@ public:
 	{               
 		velocity = Vector2Add(velocity, { impulse.x / mass, impulse.y / mass });
 	}
-
 	void telemetry()
 	{
 		
@@ -194,25 +202,20 @@ void gravity(vector<Planet>& planets)
 
 	for (size_t i = 0; i < planets.size(); i++)
 	{
-		planets[i].force = { 0, 0 }; // Reset force before summing
 		for (size_t g = 0; g < planets.size(); g++)
 		{
 			if (planets[i].id != planets[g].id)
 			{
-				planets[i].telemetry();
 				//Force = (g*m1*m2)/(r_2)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
-				cout << planets[i].id << "'s Distance: " << distance << endl;
 				direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
-				cout << planets[i].id << "'s Direction:" << direction.x << " , " << direction.y << endl;
 				std::cout << "Actual Mass: " << planets[i].mass << std::endl;
 				force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
-				cout << planets[i].id << "'s Force:" << direction.x << " , " << direction.y << endl;
 				planets[i].force += { direction.x* force_1d, direction.y* force_1d };
-				planets[i].telemetry();
 			}
 		}
 	}
+	//Applies all forces to the position_update pipeline, then resets force
 	for (size_t i = 0; i < planets.size(); i++)
 	{
 		if (planets[i].stable == false)
@@ -224,7 +227,7 @@ void gravity(vector<Planet>& planets)
 }
 
 /*
-Simple method which will take the array reference and apply an ID to each planet
+Simple method which takes the array reference and apply an ID to each planet
 */
 
 void IDize_vector(vector<Planet>& planets)
@@ -234,15 +237,7 @@ void IDize_vector(vector<Planet>& planets)
 		planets[i].id = i;
 	}
 }
-/*
-void apply_force(vector<Planet>& planets)
-{
-	for (size_t i = 0; i < planets.size(); i++)
-	{
-		planets[i].position += planets[i].force;
-	}
-}
-*/
+
 void print_positions(vector<Planet>& planets)
 {
 	for (size_t i = 0; i < planets.size(); i++)
@@ -297,11 +292,8 @@ int main()
 		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw 
 		DrawFPS(5, 0);
 
-		print_positions(region_planets);
-		//region_planets[1].telemetry();
 
 		gravity(region_planets);
-
 
 		render(region_planets);
 
