@@ -63,8 +63,15 @@ public:
 	{
 		set_acceleration();
 		apply_acceleration(delta_time);
-		Vector2 velocity_dt = { this->velocity.x * delta_time, this->velocity.y * delta_time };
-		this->position += velocity_dt;
+		this->position += this->velocity;
+	}
+	void set_force(Vector2 force)
+	{
+		this->force = Vector2Add(this->force, force);
+	}
+	void apply_impulse(Vector2 impulse) 
+	{               
+		velocity = Vector2Add(velocity, { impulse.x / mass, impulse.y / mass });
 	}
 
 	void telemetry()
@@ -211,6 +218,7 @@ void gravity(vector<Planet>& planets)
 		if (planets[i].stable == false)
 		{
 			planets[i].update_position(GetFrameTime());
+			planets[i].force = { 0, 0 }; // Reset force
 		}
 	}
 }
@@ -261,9 +269,9 @@ int main()
 
 	vector<Planet> region_planets;	//All planets in the region
 
-	region_planets.push_back(Planet(1000000, planetPos, { 0 , 0 }, 30, true));
-	region_planets.push_back(Planet(100, planetPos2, { 0 , 1 }, 10, false));
-
+	region_planets.push_back(Planet(1000000, planetPos, 30, true));
+	region_planets.push_back(Planet(100, planetPos2, 10, false));
+	region_planets[1].apply_impulse({0, 1000});
 
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
 
