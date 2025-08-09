@@ -29,8 +29,8 @@ public:
 
 	Vector2 force;
 	//Vector2 direction; Removing direction because it makes things harder and can just be stored in force
-	Vector2 acceleration;
-	Vector2 velocity;
+	Vector2 acceleration = {0, 0};
+	Vector2 velocity = {0, 0};
 
 
 	Vector2 position;
@@ -55,6 +55,7 @@ public:
 	}
 	void apply_acceleration(float delta_time)
 	{
+		cout << this->id << "'s: Delta Time: " << delta_time << endl;
 		Vector2 new_velocity = { this->acceleration.x * delta_time, this->acceleration.y * delta_time };
 		this->velocity = Vector2Add(this->velocity, new_velocity);
 	}
@@ -178,7 +179,8 @@ Method which applies N^2 Newtonian Gravity
 
 void gravity(vector<Planet>& planets)
 {
-	float gravity = 1e-44f;
+	//float gravity = 1e-14f;
+	float gravity = 1.0f;
 	float distance = 0.0f;
 	float force_1d = 0.0f;	//Force in 1 dimension
 	Vector2 direction;
@@ -251,15 +253,15 @@ int main()
 
 	InitWindow(screenWidth, screenHeight, "Barnes-Hut-Simulation"); // Initialize window with dimensions and title
 
-	SetTargetFPS(1); // Set desired framerate (frames-per-second)
+	SetTargetFPS(60); // Set desired framerate (frames-per-second)
 
 	Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
-	Vector2 planetPos2 = { (screenWidth / 2) + 800, screenHeight / 2};
+	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2};
 
 
 	vector<Planet> region_planets;	//All planets in the region
 
-	region_planets.push_back(Planet(100, planetPos, { 0 , 0 }, 30, true));
+	region_planets.push_back(Planet(1000000, planetPos, { 0 , 0 }, 30, true));
 	region_planets.push_back(Planet(100, planetPos2, { 0 , 1 }, 10, false));
 
 
