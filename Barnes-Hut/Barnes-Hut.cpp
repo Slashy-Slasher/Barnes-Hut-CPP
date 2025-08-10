@@ -172,6 +172,48 @@ public:
 
 };
 
+class Render
+{
+public:
+	float width;
+	float height;
+
+	float zoom;
+	float offset;
+
+	Vector2 center;
+
+	void render(vector<Planet> planets)	//This will render all planets
+	{
+		for (size_t i = 0; i < planets.size(); i++)
+		{
+			DrawCircle(planets[i].position.x, planets[i].position.y, planets[i].radius, RAYWHITE);
+		}
+	}
+
+	void renderUI()
+	{
+
+	}
+
+	Vector2 world_to_screen(Vector2 world_coordinates)
+	{
+		//pygame.Vector2(pygame.Vector2(grouped_tuple) * self.zoom) + self.CURRENT_OFFSET + self.center
+		return Vector2Add(Vector2AddValue(Vector2Multiply(world_coordinates, { zoom, zoom }), offset), center);
+	}
+
+	Vector2 screen_to_world(Vector2 screen_coordinates)
+	{
+		//(pygame.Vector2(grouped_tuple) - self.center - self.CURRENT_OFFSET)/self.zoom
+		Vector2 numerator = Vector2SubtractValue(Vector2Subtract(screen_coordinates, center), offset);
+		return { numerator.x / zoom, numerator.y / zoom };
+	}
+	float scale_radius()
+	{
+
+	}
+
+};
 
 /*
 Renders every planet in the Universe
@@ -209,7 +251,7 @@ void gravity(vector<Planet>& planets)
 				//Force = (g*m1*m2)/(r_2)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
 				direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
-				std::cout << "Actual Mass: " << planets[i].mass << std::endl;
+				//std::cout << "Actual Mass: " << planets[i].mass << std::endl;
 				force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
 				planets[i].force += { direction.x* force_1d, direction.y* force_1d };
 			}
@@ -260,13 +302,18 @@ int main()
 
 	Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
 	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2};
+	Vector2 planetPos3 = { (screenWidth / 2) + 300, screenHeight / 2 };
+
 
 
 	vector<Planet> region_planets;	//All planets in the region
 
 	region_planets.push_back(Planet(1000000, planetPos, 30, true));
 	region_planets.push_back(Planet(100, planetPos2, 10, false));
+	region_planets.push_back(Planet(300, planetPos3, 10, false));
 	region_planets[1].apply_impulse({0, 1000});
+	region_planets[2].apply_impulse({ 0, 1300 });
+
 
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
 
