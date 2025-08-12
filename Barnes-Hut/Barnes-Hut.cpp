@@ -262,11 +262,11 @@ public:
 		}
 		if (wheel > 0) {
 			rend.zoom += zoom_level;
-			Clamp(rend.zoom, .00001f, 100.0f);
+			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
 		}
 		else if (wheel < 0) {
 			rend.zoom -= zoom_level;
-			Clamp(rend.zoom, .00001f, 100.0f);
+			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
 		}
 		// Left mouse button pressed
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
