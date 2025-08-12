@@ -179,15 +179,27 @@ public:
 	float height;
 
 	float zoom;
-	float offset;
 
+
+	Vector2 offset;
 	Vector2 center;
+
+	Render(float width, float height, float zoom, Vector2 offset, Vector2 center)
+	{
+		this->width = width;
+		this->height = height;
+		this->zoom = zoom;
+		this->offset = offset;
+		this->center = center;
+
+	}
 
 	void render(vector<Planet> planets)	//This will render all planets
 	{
 		for (size_t i = 0; i < planets.size(); i++)
 		{
-			DrawCircle(planets[i].position.x, planets[i].position.y, planets[i].radius, RAYWHITE);
+			Vector2 planet_position = world_to_screen(planets[i].position);
+			DrawCircle(planet_position.x, planet_position.y, scale_radius(planets[i].radius), RAYWHITE);
 		}
 	}
 
@@ -199,18 +211,85 @@ public:
 	Vector2 world_to_screen(Vector2 world_coordinates)
 	{
 		//pygame.Vector2(pygame.Vector2(grouped_tuple) * self.zoom) + self.CURRENT_OFFSET + self.center
-		return Vector2Add(Vector2AddValue(Vector2Multiply(world_coordinates, { zoom, zoom }), offset), center);
+		return Vector2Add(Vector2Add(Vector2Multiply(world_coordinates, { zoom, zoom }), offset), center);
 	}
 
 	Vector2 screen_to_world(Vector2 screen_coordinates)
 	{
 		//(pygame.Vector2(grouped_tuple) - self.center - self.CURRENT_OFFSET)/self.zoom
-		Vector2 numerator = Vector2SubtractValue(Vector2Subtract(screen_coordinates, center), offset);
+		Vector2 numerator = Vector2Subtract(Vector2Subtract(screen_coordinates, center), offset);
 		return { numerator.x / zoom, numerator.y / zoom };
 	}
-	float scale_radius()
+	float scale_radius(float radius)
 	{
+		return max(1.0f, (radius * zoom));
+	}
 
+};
+
+class Input_Handler
+{
+public:
+	bool dragging = false;
+	Vector2 screen_last_mouse_pos = {0,0};		//This is for moving the screen
+	Vector2 screen_current_mouse_pos = { 0,0 };//This is also for moving the scrren 
+	Render& rend;
+	
+
+
+	Input_Handler(Render& rend) : rend(rend) {}
+
+	void handle_inputs()
+	{
+		float wheel = GetMouseWheelMove();
+		float zoom_level = 0.1;
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		{
+			DrawText("Left mouse button is being held down!", 100, 100, 20, RED);
+		}
+		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+		{
+			DrawText("Right mouse button is being held down!", 100, 100, 20, RED);
+
+		}
+		if (IsKeyDown(KEY_SPACE))
+		{
+
+		}
+		if (IsKeyPressed(KEY_R))
+		{
+
+		}
+		if (wheel > 0) {
+			rend.zoom += zoom_level;
+			Clamp(rend.zoom, .00001f, 100.0f);
+		}
+		else if (wheel < 0) {
+			rend.zoom -= zoom_level;
+			Clamp(rend.zoom, .00001f, 100.0f);
+		}
+		// Left mouse button pressed
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+		{
+			dragging = true;
+			screen_last_mouse_pos = GetMousePosition();
+		}
+
+		// Left mouse button released
+		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
+		{
+			dragging = false;
+		}
+
+		// Mouse moved while dragging
+		if (dragging && IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+		{
+			Vector2 mouse_pos = GetMousePosition();
+			Vector2 movement = Vector2Subtract(mouse_pos, screen_last_mouse_pos);
+			Vector2 current_offset = Vector2Add(rend.offset, movement);
+			rend.offset = current_offset;
+			screen_last_mouse_pos = mouse_pos;
+		}
 	}
 
 };
@@ -304,8 +383,8 @@ int main()
 	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2};
 	Vector2 planetPos3 = { (screenWidth / 2) + 300, screenHeight / 2 };
 
-
-
+	Render rend = Render(screenWidth, screenHeight,.5f, { 0,0 }, {0,0});
+	Input_Handler input = Input_Handler(rend);
 	vector<Planet> region_planets;	//All planets in the region
 
 	region_planets.push_back(Planet(1000000, planetPos, 30, true));
@@ -342,7 +421,10 @@ int main()
 
 		gravity(region_planets);
 
-		render(region_planets);
+		//render(region_planets);
+		rend.render(region_planets);
+		input.handle_inputs();
+
 
 		EndDrawing(); // End drawing and swap buffers
 	}
