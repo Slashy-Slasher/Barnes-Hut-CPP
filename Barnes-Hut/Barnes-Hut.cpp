@@ -90,8 +90,14 @@ public:
 			<< " Accel: (" << this->acceleration.x << ", " << this->acceleration.y << ")"
 			<< " Vel: (" << this->velocity.x << ", " << this->velocity.y << ")" << endl;
 	}
-
-
+	//Might remove from this class, but it's convient to have whereever there are planets
+	static void IDize_vector(vector<Planet>& planets)
+	{
+		for (size_t i = 0; i < planets.size(); i++)
+		{
+			planets[i].id = i;
+		}
+	}
 };
 
 class Quadtree
@@ -234,10 +240,12 @@ public:
 	Vector2 screen_last_mouse_pos = {0,0};		//This is for moving the screen
 	Vector2 screen_current_mouse_pos = { 0,0 };//This is also for moving the scrren 
 	Render& rend;
+	vector<Planet>& planet_list;
 	
 
 
-	Input_Handler(Render& rend) : rend(rend) {}
+	Input_Handler(Render& rend, vector<Planet>& planet_list) 
+		: rend(rend), planet_list(planet_list) {}
 
 	void handle_inputs()
 	{
@@ -250,7 +258,9 @@ public:
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 		{
 			DrawText("Right mouse button is being held down!", 100, 100, 20, RED);
-
+			planet_list.push_back(Planet(100, { (rend.width / 2) + 300, rend.height / 2 }, 10, false));
+			planet_list[planet_list.size()-1].apply_impulse({0, 300});
+			Planet::IDize_vector(planet_list);
 		}
 		if (IsKeyDown(KEY_SPACE))
 		{
@@ -263,10 +273,12 @@ public:
 		if (wheel > 0) {
 			rend.zoom += zoom_level;
 			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
+			zoom_level = rend.zoom / 10;
 		}
 		else if (wheel < 0) {
 			rend.zoom -= zoom_level;
 			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
+			zoom_level = rend.zoom / 10;
 		}
 		// Left mouse button pressed
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -384,7 +396,6 @@ int main()
 	Vector2 planetPos3 = { (screenWidth / 2) + 300, screenHeight / 2 };
 
 	Render rend = Render(screenWidth, screenHeight,.5f, { 0,0 }, {0,0});
-	Input_Handler input = Input_Handler(rend);
 	vector<Planet> region_planets;	//All planets in the region
 
 	region_planets.push_back(Planet(1000000, planetPos, 30, true));
@@ -393,8 +404,13 @@ int main()
 	region_planets[1].apply_impulse({0, 1000});
 	region_planets[2].apply_impulse({ 0, 1300 });
 
+	
+
 
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
+
+	Input_Handler input = Input_Handler(rend, region_planets);
+
 
 	for (size_t i = 0; i < region_planets.size(); i++)
 	{
