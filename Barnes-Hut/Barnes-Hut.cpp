@@ -6,7 +6,6 @@
 #include <raylib.h>
 #include <raymath.h>
 
-
 using namespace std;
 
 
@@ -258,9 +257,22 @@ public:
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 		{
 			DrawText("Right mouse button is being held down!", 100, 100, 20, RED);
-			planet_list.push_back(Planet(100, { (rend.width / 2) + 300, rend.height / 2 }, 10, false));
-			planet_list[planet_list.size()-1].apply_impulse({0, 300});
+			float min_distance = 400.0f;
+			float max_distance = 10000.0f;
+			float min_impulse = 200.0f;
+			float max_impulse = 800.0f;
+
+			for (size_t i = 0; i < 70; i++)
+			{
+				Planet new_planet = Planet(100, { (rend.width / 2) + min_distance + max_distance * GetRandomValue(0, 1000) / 1000.0f , rend.height / 2 }, 10, false);
+				new_planet.apply_impulse({ 0, min_impulse + max_impulse * GetRandomValue(0, 1000) / 1000.0f });
+				planet_list.push_back(new_planet);
+			}
+			//planet_list[planet_list.size() - 1].apply_impulse({ 0, 300 });
+
 			Planet::IDize_vector(planet_list);
+
+
 		}
 		if (IsKeyDown(KEY_SPACE))
 		{
@@ -343,7 +355,10 @@ void gravity(vector<Planet>& planets)
 				distance = Vector2Distance(planets[i].position, planets[g].position);
 				direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
 				//std::cout << "Actual Mass: " << planets[i].mass << std::endl;
-				force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
+				if (distance != 0)	//Easiest possible guard to prevent NAN propagation
+				{
+					force_1d = (gravity * planets[i].mass * planets[g].mass) / (distance * distance);
+				}
 				planets[i].force += { direction.x* force_1d, direction.y* force_1d };
 			}
 		}
@@ -431,12 +446,15 @@ int main()
 	{
 		BeginDrawing();
 		ClearBackground(BLACK);
-		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw 
+		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw
+
+		DrawText(TextFormat("Current Planets: %d", (int)region_planets.size()), 5, 50, 30, LIGHTGRAY); // Draw 
+
 		DrawFPS(5, 0);
 
 
 		gravity(region_planets);
-
+		//region_planets[1].telemetry();
 		//render(region_planets);
 		rend.render(region_planets);
 		input.handle_inputs();
