@@ -5,6 +5,7 @@
 #include <Vector>
 #include <raylib.h>
 #include <raymath.h>
+#include <deque>
 
 using namespace std;
 
@@ -35,6 +36,8 @@ public:
 	Vector2 position;
 		
 	vector<Vector2> area_points;	//Planned Experimental for now
+	deque<Vector2> position_history;
+
 
 	Planet(float mass, Vector2 position, float radius, bool stable)	
 	{
@@ -71,6 +74,14 @@ public:
 	{
 		set_acceleration();
 		apply_acceleration(delta_time);
+		//These lines are for adding trails to planets
+		this->position_history.push_back(this->position);
+		if (this->position_history.size() > 100)
+		{
+			this->position_history.pop_front();
+		}
+
+		
 		this->position += this->velocity;
 	}
 	void set_force(Vector2 force)
@@ -207,6 +218,23 @@ public:
 			DrawCircle(planet_position.x, planet_position.y, scale_radius(planets[i].radius), RAYWHITE);
 		}
 	}
+
+	void render_planet_history(vector<Planet> planets)
+	{
+		for (size_t i = 0; i < planets.size(); i++)
+		{
+			for (size_t h = 1; h < planets[i].position_history.size(); h++)
+			{
+				Vector2 position_1 = world_to_screen(planets[i].position_history[h]);
+				Vector2 position_2 = world_to_screen(planets[i].position_history[h-1]);
+				if (planets[i].position_history.size() > 2)
+				{
+					DrawLine(position_1.x, position_1.y, position_2.x, position_2.y, LIGHTGRAY);
+				}
+			}
+		}
+	}
+
 
 	void renderUI()
 	{
@@ -413,7 +441,7 @@ int main()
 	Render rend = Render(screenWidth, screenHeight,.5f, { 0,0 }, {0,0});
 	vector<Planet> region_planets;	//All planets in the region
 
-	region_planets.push_back(Planet(1000000, planetPos, 30, true));
+	region_planets.push_back(Planet(10000000, planetPos, 30, true));
 	region_planets.push_back(Planet(100, planetPos2, 10, false));
 	region_planets.push_back(Planet(300, planetPos3, 10, false));
 	region_planets[1].apply_impulse({0, 1000});
@@ -457,6 +485,7 @@ int main()
 		//region_planets[1].telemetry();
 		//render(region_planets);
 		rend.render(region_planets);
+		rend.render_planet_history(region_planets);
 		input.handle_inputs();
 
 
