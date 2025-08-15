@@ -1,12 +1,14 @@
 # Brute force Method of Gravity
 
 <p align="center">
-  <img src="videos/ID_Demo.gif" alt="Quadtree Demo" />
+  <img src="videos/Stress-Test-Bruteforce.gif" alt="Quadtree Demo" />
 </p>
 
 <p align="center">
-  <img src="videos/Stress-Test-Bruteforce.gif" alt="Quadtree Demo" />
+  <img src="videos/ID_Demo.gif" alt="Quadtree Demo" />
 </p>
+
+
 
 
 # Barnes-Hut
