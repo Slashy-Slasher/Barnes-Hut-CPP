@@ -6,6 +6,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <deque>
+#include <string>
 
 using namespace std;
 
@@ -16,7 +17,7 @@ public:
 	float mass;
 	float radius;
 	float color;
-	float id;
+	int id;
 
 	bool stable;
 
@@ -200,6 +201,8 @@ public:
 	Vector2 offset;
 	Vector2 center;
 
+	Planet* selected_planet;
+
 	Render(float width, float height, float zoom, Vector2 offset, Vector2 center)
 	{
 		this->width = width;
@@ -207,7 +210,7 @@ public:
 		this->zoom = zoom;
 		this->offset = offset;
 		this->center = center;
-
+		this->selected_planet = nullptr;
 	}
 
 	void render(vector<Planet> planets)	//This will render all planets
@@ -235,6 +238,16 @@ public:
 		}
 	}
 
+	void render_selected_planet_hud()
+	{
+		if (selected_planet != nullptr)
+		{
+			DrawRing(world_to_screen(selected_planet->position), scale_radius(selected_planet->radius+2), scale_radius(selected_planet->radius+5), 0, 360, 32, GREEN);
+
+			std::string text = "ID: " + std::to_string(selected_planet->id);
+			DrawText(text.c_str(), world_to_screen(selected_planet->position).x + scale_radius(selected_planet->radius) + 5, world_to_screen(selected_planet->position).y - scale_radius(selected_planet->radius), scale_radius(6), LIGHTGRAY); // Draw
+		}
+	}
 
 	void renderUI()
 	{
@@ -268,7 +281,6 @@ public:
 	Vector2 screen_current_mouse_pos = { 0,0 };//This is also for moving the scrren 
 	Render& rend;
 	vector<Planet>& planet_list;
-	
 
 
 	Input_Handler(Render& rend, vector<Planet>& planet_list) 
@@ -281,7 +293,16 @@ public:
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		{
 			DrawText("Left mouse button is being held down!", 100, 100, 20, RED);
+
+			for (size_t i = 0; i < planet_list.size(); i++)
+			{
+				if (Vector2Distance(rend.screen_to_world(GetMousePosition()), planet_list[i].position) < planet_list[i].radius)
+				{
+					rend.selected_planet = &planet_list[i];
+				}
+			}
 		}
+
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 		{
 			DrawText("Right mouse button is being held down!", 100, 100, 20, RED);
@@ -486,6 +507,7 @@ int main()
 		//render(region_planets);
 		rend.render(region_planets);
 		rend.render_planet_history(region_planets);
+		rend.render_selected_planet_hud();
 		input.handle_inputs();
 
 
