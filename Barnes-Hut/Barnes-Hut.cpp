@@ -138,7 +138,12 @@ public:
 
 	float calculate_region_mass()
 	{
-		return 0; //Returns the entire region's mass
+		float temp_mass = 0;
+		for (size_t i = 0; i < region_planets.size(); i++)
+		{
+			temp_mass += region_planets[0].mass;
+		}
+		return temp_mass;
 	}
 
 	void check_root()
@@ -178,6 +183,11 @@ public:
 		this->w = w;
 		this->h = h;
 		this->parent = parent;
+		this->tlc = nullptr;
+		this->trc = nullptr;
+		this->blc = nullptr;
+		this->brc = nullptr;
+
 		this->region_planets = planet_list;
 		this->depth = depth;
 		this->max = max;
@@ -254,6 +264,8 @@ public:
 
 	}
 
+
+
 	Vector2 world_to_screen(Vector2 world_coordinates)
 	{
 		//pygame.Vector2(pygame.Vector2(grouped_tuple) * self.zoom) + self.CURRENT_OFFSET + self.center
@@ -306,9 +318,9 @@ public:
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 		{
 			DrawText("Right mouse button is being held down!", 100, 100, 20, RED);
-			float min_distance = 400.0f;
+			float min_distance = 800.0f;
 			float max_distance = 10000.0f;
-			float min_impulse = 200.0f;
+			float min_impulse = 300.0f;
 			float max_impulse = 800.0f;
 
 			for (size_t i = 0; i < 70; i++)
@@ -497,7 +509,7 @@ int main()
 		ClearBackground(BLACK);
 		DrawText("Created with C++ and Raylib!", screenWidth / 2 - 50, 10, 30, LIGHTGRAY); // Draw
 
-		DrawText(TextFormat("Current Planets: %d", (int)region_planets.size()), 5, 50, 30, LIGHTGRAY); // Draw 
+		DrawText(TextFormat("Current Planets: %d", (int)region_planets.size()), screenWidth / 2 - 50, 50, 30, LIGHTGRAY); // Draw 
 
 		DrawFPS(5, 0);
 
