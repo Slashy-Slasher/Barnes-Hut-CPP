@@ -183,10 +183,14 @@ public:
 		if (width < find_furthest_point())
 		{
 			width = width * 2;
-			x = width;
-			y = width;
+			x = -width;
+			y = -width;
 			w = width;
 			h = width;
+			if (width < find_furthest_point())
+			{
+				resize();
+			}
 		}
 
 	}
@@ -211,6 +215,7 @@ public:
 
 	void subdivide()
 	{
+		//if ((w - x) <= 1e-6f || (h - y) <= 1e-6f) return; // region too thin to split safely
 		int new_depth = this->depth+1;
 		if (region_planets.size() > max && depth < 5)
 		{
@@ -218,7 +223,7 @@ public:
 			//Region points for TLC: 
 			// x, y, (x + w) / 2, (y + h) / 2
 			vector<Planet> tlc_planets = points_in_region(x, y, (x + w) / 2, (y + h) / 2, this->region_planets);
-			if (tlc_planets.size() > max)
+			if ((int)tlc_planets.size() > max)
 			{
 				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max);
 				tlc->subdivide();
@@ -231,7 +236,7 @@ public:
 			//Region points for TRC: 
 			// (w + x) / 2, y, w, (y + h) / 2
 			vector<Planet> trc_planets = points_in_region((w + x) / 2, y, w, (y + h) / 2, this->region_planets);
-			if (trc_planets.size() > max)
+			if ((int)trc_planets.size() > max)
 			{
 				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max);
 				trc->subdivide();
@@ -244,7 +249,7 @@ public:
 			//Region points for BLC: 
 			// x, (y + h) / 2, (x + w) / 2, h
 			vector<Planet> blc_planets = points_in_region(x, (y + h) / 2, (x + w) / 2, h, this->region_planets);
-			if (blc_planets.size() > max)
+			if ((int)blc_planets.size() > max)
 			{
 				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max);
 				blc->subdivide();
@@ -256,7 +261,7 @@ public:
 			//Region points for BRC:
 			// (w + x) / 2, (y + h) / 2, w, h
 			vector<Planet> brc_planets = points_in_region((w + x) / 2, (y + h) / 2, w, h, this->region_planets);
-			if (brc_planets.size() > max)
+			if ((int)brc_planets.size() > max)
 			{
 				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max);
 				brc->subdivide();
