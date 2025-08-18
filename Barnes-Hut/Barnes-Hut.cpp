@@ -119,7 +119,7 @@ public:
 	float w;			//Bottom x_right corner of the area
 	float h;			//Bottom y_right corner of the area
 	float width;		//Width of the box
-
+	
 	int max;			//Max depth
 	int depth;			//Current Depth
 
@@ -131,6 +131,8 @@ public:
 
 	bool isRoot;
 
+
+	Vector2 center;
 	vector<Planet> region_planets;	//All planets in the region
 	float combined_planet_mass;		//Mass of the region
 	vector<float> mass_center;		//Center of Mass 
@@ -141,7 +143,7 @@ public:
 		float temp_mass = 0;
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
-			temp_mass += region_planets[0].mass;
+			temp_mass += region_planets[i].mass;
 		}
 		return temp_mass;
 	}
@@ -154,26 +156,116 @@ public:
 		}
 	}
 
+	void update_region_planets(vector<Planet> new_region_planets) //Called every frame to keep the data struct and the game world aligned
+	{
+		this->region_planets = new_region_planets;
+	}
+
 	vector<Planet> points_in_region(float x, float y, float w, float h, vector<Planet> region_planets)
 	{
 		//Take a list of all planets within the tree
 		//Return the a list off all planets within the sector
+		vector<Planet> new_planets_in_region;
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
+			Vector2 tested_position = region_planets[i].position; 
+			if ((tested_position.x >= x and tested_position.x < w) and
+				(tested_position.y >= y and tested_position.y < h)) 
+			{
+				new_planets_in_region.push_back(region_planets[i]);
+			}
+		}
+		return new_planets_in_region;
+	}
 
+	void resize()	//Checks out of bounds, then resizes the tree
+	{
+		if (width < find_furthest_point())
+		{
+			width = width * 2;
+			x = width;
+			y = width;
+			w = width;
+			h = width;
 		}
 
 	}
 
+	float find_furthest_point()
+	{
+		size_t furthest_index = NULL;
+		float temp_distance = 0;
+		float furthest_distance = -1;
+		
+		for (size_t i = 0; i < region_planets.size(); i++)
+		{
+			temp_distance = Vector2Distance(region_planets[i].position, center);
+			if ( temp_distance > furthest_distance)
+			{
+				furthest_index = i;
+				furthest_distance = temp_distance;
+			}
+		}
+		return furthest_distance;
+	}
+
 	void subdivide()
 	{
-		++depth;
-
-		if (region_planets.size() > max && depth < 100)
+		int new_depth = this->depth+1;
+		if (region_planets.size() > max && depth < 5)
 		{
+			//cout << "Test: " << depth << endl;
+			//Region points for TLC: 
+			// x, y, (x + w) / 2, (y + h) / 2
+			vector<Planet> tlc_planets = points_in_region(x, y, (x + w) / 2, (y + h) / 2, this->region_planets);
+			if (tlc_planets.size() > max)
+			{
+				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max);
+				tlc->subdivide();
+			}
+			else
+			{
+				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max);
+			}
 
+			//Region points for TRC: 
+			// (w + x) / 2, y, w, (y + h) / 2
+			vector<Planet> trc_planets = points_in_region((w + x) / 2, y, w, (y + h) / 2, this->region_planets);
+			if (trc_planets.size() > max)
+			{
+				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max);
+				trc->subdivide();
+			}
+			else
+			{
+				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max);
+			}
+			
+			//Region points for BLC: 
+			// x, (y + h) / 2, (x + w) / 2, h
+			vector<Planet> blc_planets = points_in_region(x, (y + h) / 2, (x + w) / 2, h, this->region_planets);
+			if (blc_planets.size() > max)
+			{
+				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max);
+				blc->subdivide();
+			}
+			else
+			{
+				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max);
+			}
+			//Region points for BRC:
+			// (w + x) / 2, (y + h) / 2, w, h
+			vector<Planet> brc_planets = points_in_region((w + x) / 2, (y + h) / 2, w, h, this->region_planets);
+			if (brc_planets.size() > max)
+			{
+				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max);
+				brc->subdivide();
+			}
+			else
+			{
+				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max);
+			}
 		}
-
 	}
 
 	Quadtree(Quadtree* parent, float x, float y, float w, float h, vector<Planet> planet_list, int depth, int max)	//Generates a quadtree and returns a pointer
@@ -192,11 +284,12 @@ public:
 		this->depth = depth;
 		this->max = max;
 		check_root();	//Determines if the Quadtree has a parent node and configures the bool accordingly
+		
 
+		this->center = { (x + w) / 2, (y + h) / 2 };
 		this->width = abs(x - w);
 		this->combined_planet_mass = calculate_region_mass();
 	}
-
 };
 
 class Render
@@ -212,6 +305,10 @@ public:
 	Vector2 center;
 
 	Planet* selected_planet;
+	Quadtree* quadtree_ptr;
+	//Array of Points
+	vector<vector<Vector2>> coordinates;	//Stores all points within the quadtree
+	
 
 	Render(float width, float height, float zoom, Vector2 offset, Vector2 center)
 	{
@@ -221,6 +318,10 @@ public:
 		this->offset = offset;
 		this->center = center;
 		this->selected_planet = nullptr;
+	}
+	void add_quadtree(Quadtree* new_quadtree)
+	{
+		this->quadtree_ptr = new_quadtree;
 	}
 
 	void render(vector<Planet> planets)	//This will render all planets
@@ -257,6 +358,17 @@ public:
 			std::string text = "ID: " + std::to_string(selected_planet->id);
 			DrawText(text.c_str(), world_to_screen(selected_planet->position).x + scale_radius(selected_planet->radius) + 5, world_to_screen(selected_planet->position).y - scale_radius(selected_planet->radius), scale_radius(6), LIGHTGRAY); // Draw
 		}
+	}
+
+	void render_quadtree()
+	{
+
+		cout << "Total: points: " << quadtree_ptr->region_planets.size()<< endl;
+
+		cout << "TLC points: " << quadtree_ptr->tlc->region_planets.size() << endl;
+		cout << "TRC points: " << quadtree_ptr->trc->region_planets.size() << endl;
+		cout << "BLC points: " << quadtree_ptr->blc->region_planets.size() << endl;
+		cout << "BRC points: " << quadtree_ptr->brc->region_planets.size() << endl;
 	}
 
 	void renderUI()
@@ -329,8 +441,6 @@ public:
 				new_planet.apply_impulse({ 0, min_impulse + max_impulse * GetRandomValue(0, 1000) / 1000.0f });
 				planet_list.push_back(new_planet);
 			}
-			//planet_list[planet_list.size() - 1].apply_impulse({ 0, 300 });
-
 			Planet::IDize_vector(planet_list);
 
 
@@ -476,10 +586,10 @@ int main()
 
 	region_planets.push_back(Planet(10000000, planetPos, 30, true));
 	region_planets.push_back(Planet(100, planetPos2, 10, false));
-	region_planets.push_back(Planet(300, planetPos3, 10, false));
-	region_planets[1].apply_impulse({0, 1000});
-	region_planets[2].apply_impulse({ 0, 1300 });
-
+	region_planets.push_back(Planet(100, planetPos3, 10, false));
+	region_planets[1].apply_impulse({1000, 3000});
+	region_planets[2].apply_impulse({1000, 2500 });
+	
 	
 
 
@@ -488,17 +598,11 @@ int main()
 	Input_Handler input = Input_Handler(rend, region_planets);
 
 
-	for (size_t i = 0; i < region_planets.size(); i++)
-	{
-		cout << "i: " << region_planets[i].id << endl;
-	}
-
-
 	Vector2 test = { 0,0 };
-	cout << "Number of planets: " << region_planets.size() << endl;
 	Quadtree* testNull = nullptr;
 
-	Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
+	float width = 100;
+	Quadtree tester(testNull, -width, -width, width, width, region_planets, 0, 1);
 
 
 	//--------------------------------------------------------------------------------------
@@ -514,11 +618,22 @@ int main()
 		DrawFPS(5, 0);
 
 
+		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
+		tester.update_region_planets(region_planets);
+		tester.resize();
+		tester.subdivide();
+
 		gravity(region_planets);
+
+		cout << "Tester width: " << tester.width << endl;
+		cout << "Tester region_planet size(): " << tester.region_planets.size() << endl;
+
 		//region_planets[1].telemetry();
 		//render(region_planets);
 		rend.render(region_planets);
-		rend.render_planet_history(region_planets);
+		rend.add_quadtree(&tester);
+		rend.render_quadtree();
+		//rend.render_planet_history(region_planets);
 		rend.render_selected_planet_hud();
 		input.handle_inputs();
 
