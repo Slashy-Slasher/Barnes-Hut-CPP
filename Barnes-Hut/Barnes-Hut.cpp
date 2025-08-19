@@ -11,6 +11,7 @@
 using namespace std;
 
 
+class Quadtree;
 class Planet
 {
 public:
@@ -35,7 +36,8 @@ public:
 
 
 	Vector2 position;
-		
+	Quadtree* node;
+
 	vector<Vector2> area_points;	//Planned Experimental for now
 	deque<Vector2> position_history;
 
@@ -44,7 +46,7 @@ public:
 	{
 		this->mass = mass;
 		this->position = position;
-
+		//this->node = nullptr;
 
 		//this->velocity = Vector2Add(this->velocity, return_velocity_delta_from_force(force, GetFrameTime()));
 
@@ -61,6 +63,12 @@ public:
 		return new_velocity;
 	}
 
+	
+	void set_node(Quadtree* new_node)
+	{
+		this->node = new_node;
+	}
+	
 	void set_acceleration()
 	{
 		this->acceleration = { this->force.x / this->mass, this->force.y / this->mass };
@@ -336,9 +344,9 @@ public:
 			Vector2 planet_position = world_to_screen(planets[i].position);
 			if (CheckCollisionPointRec(planet_position, { 0, 0, width+20, height+20}))
 			{
-			DrawCircle(planet_position.x, planet_position.y, scale_radius(planets[i].radius), RAYWHITE);
+				DrawCircle(planet_position.x, planet_position.y, scale_radius(planets[i].radius), RAYWHITE);
+			}
 		}
-	}
 	}
 
 	void render_planet_history(vector<Planet> planets)
@@ -443,7 +451,7 @@ public:
 			float min_impulse = 300.0f;
 			float max_impulse = 800.0f;
 
-			for (size_t i = 0; i < 70; i++)
+			for (size_t i = 0; i < 2000; i++)
 			{
 				Planet new_planet = Planet(100, { (rend.width / 2) + min_distance + max_distance * GetRandomValue(0, 1000) / 1000.0f , rend.height / 2 }, 10, false);
 				new_planet.apply_impulse({ 0, min_impulse + max_impulse * GetRandomValue(0, 1000) / 1000.0f });
@@ -557,6 +565,32 @@ void gravity(vector<Planet>& planets)
 Simple method which takes the array reference and apply an ID to each planet
 */
 
+
+/*
+
+*/
+
+void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree)
+{
+	//Build the map/dictionary
+
+	//for()
+
+	/*
+		For every planet:
+			
+			Recurse down into the tree until s/d is satisfied
+				- Approximate
+
+			Otherwise 
+				- Direct Gravity
+	*/
+
+
+
+}
+
+
 void IDize_vector(vector<Planet>& planets)
 {
 	for (size_t i = 0; i < planets.size(); i++)
@@ -627,21 +661,18 @@ int main()
 
 
 		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
-		tester.update_region_planets(region_planets);
-		tester.resize();
-		tester.subdivide();
+		tester.update_region_planets(region_planets);	//Updates the quadtree with a pointer to all planets
+		rend.add_quadtree(&tester);						//Gives rend the quadtree pointer
+		tester.resize();								//Resizes quadtree to encapsulate all planets
+		//tester.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
-		gravity(region_planets);
+		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
 
-		cout << "Tester width: " << tester.width << endl;
-		cout << "Tester region_planet size(): " << tester.region_planets.size() << endl;
+		rend.render(region_planets);			
+		//rend.render_quadtree();							//Displays Quadtree Telemetry
+	
+		//rend.render_planet_history(region_planets);	//Draws planet history, computation = n
 
-		//region_planets[1].telemetry();
-		//render(region_planets);
-		rend.render(region_planets);
-		rend.add_quadtree(&tester);
-		rend.render_quadtree();
-		//rend.render_planet_history(region_planets);
 		rend.render_selected_planet_hud();
 		input.handle_inputs();
 
@@ -655,5 +686,3 @@ int main()
 
 	return 0;
 }
-
-
