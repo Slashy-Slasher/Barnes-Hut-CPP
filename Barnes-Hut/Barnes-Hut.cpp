@@ -334,8 +334,11 @@ public:
 		for (size_t i = 0; i < planets.size(); i++)
 		{
 			Vector2 planet_position = world_to_screen(planets[i].position);
+			if (CheckCollisionPointRec(planet_position, { 0, 0, width+20, height+20}))
+			{
 			DrawCircle(planet_position.x, planet_position.y, scale_radius(planets[i].radius), RAYWHITE);
 		}
+	}
 	}
 
 	void render_planet_history(vector<Planet> planets)
