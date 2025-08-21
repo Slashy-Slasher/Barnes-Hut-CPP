@@ -206,6 +206,13 @@ public:
 		return { 0,0 };
 	}
 
+	void return_children(std::vector<Quadtree*>* list) const {
+		if (tlc) list->push_back(tlc);
+		if (trc) list->push_back(trc);
+		if (blc) list->push_back(blc);
+		if (brc) list->push_back(brc);
+	}
+
 	void check_root()
 	{
 		if (parent == nullptr)
@@ -616,7 +623,7 @@ Simple method which takes the array reference and apply an ID to each planet
 
 */
 
-void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree)
+void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vector<Quadtree*> leaf_storage)
 {
 	//Build the map/dictionary
 
@@ -634,13 +641,21 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree)
 				- Direct Gravity
 	*/
 
-	cout << quadtree.leaf_list->size() <<endl;
+	//cout << quadtree.leaf_list->size() <<endl;
+
+	//
 
 
 	for (size_t i = 0; i < planets.size(); i++)
 	{
-		vector<Quadtree> comparison_list;
-		for (size_t i = 0; i < planets.size(); i++)
+		Vector2 p1_position = planets[i].position;	//Position of the iterable planet
+		Quadtree* p1_node = planets[i].node;		//Node that the iterable planet resides in
+
+		std::vector<Quadtree*> comparison_list;   // real vector
+		comparison_list.reserve(4);
+		quadtree.return_children(&comparison_list);  // pass pointer	
+
+		for (size_t j = 0; j < leaf_storage.size(); j++)
 		{
 
 		}
@@ -729,10 +744,11 @@ int main()
 		root.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
 		gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
-		quadtree_gravity(g, region_planets, root);
+		quadtree_gravity(g, region_planets, root, leaf_storage);
 		
 
-		rend.render(region_planets);			
+		rend.render(region_planets);		
+
 		//rend.render_quadtree();							//Displays Quadtree Telemetry
 	
 		//rend.render_planet_history(region_planets);	//Draws planet history, computation = n
