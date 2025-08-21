@@ -8,11 +8,13 @@
   <img src="videos/ID_Demo.gif" alt="Quadtree Demo" />
 </p>
 
-
-
-
+<br>https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation</br>
+Largest term in O notation: n ^ 2
 # Barnes-Hut
 
+<br>https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation</br>
+
+Largest term in O notation: n log n
 
 This project is my 3rd iteration on the concept of a solar simulation and my 2nd iteration on a Barnes-Hut.
 
