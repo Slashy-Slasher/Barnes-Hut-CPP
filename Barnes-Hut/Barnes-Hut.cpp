@@ -145,6 +145,39 @@ public:
 	float combined_planet_mass;		//Mass of the region
 	Vector2 mass_center;		//Center of Mass 
 
+	vector<Quadtree*>* leaf_list = nullptr;
+
+
+	Quadtree(Quadtree* parent, float x, float y, float w, float h, vector<Planet> planet_list, int depth, int max, vector<Quadtree*>* leaf_list)	//Generates a quadtree and returns a pointer
+	{
+		this->x = x;
+		this->y = y;
+		this->w = w;
+		this->h = h;
+		this->parent = parent;
+		this->tlc = nullptr;
+		this->trc = nullptr;
+		this->blc = nullptr;
+		this->brc = nullptr;
+
+		check_root();	//Determines if the Quadtree has a parent node and configures the bool accordingly
+		/*
+		if (!this->isRoot)
+		{
+			this->leaf_list = parent->leaf_list;
+		}
+		*/
+		this->leaf_list = leaf_list;
+		this->region_planets = planet_list;
+		this->depth = depth;
+		this->max = max;
+
+		this->center = { (x + w) / 2, (y + h) / 2 };
+		this->width = abs(x - w);
+		this->combined_planet_mass = calculate_region_mass();
+		this->mass_center = calculate_center_of_mass();
+		tag_planets();
+	}
 
 	float calculate_region_mass()
 	{
@@ -258,12 +291,13 @@ public:
 			vector<Planet> tlc_planets = points_in_region(x, y, (x + w) / 2, (y + h) / 2, this->region_planets);
 			if ((int)tlc_planets.size() > max)
 			{
-				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max);
+				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max, leaf_list);
 				tlc->subdivide();
 			}
 			else
 			{
-				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max);
+				tlc = new Quadtree(this, x, y, (x + w) / 2, (y + h) / 2, tlc_planets, new_depth, max, leaf_list);
+				if (tlc->region_planets.size() > 0) leaf_list->push_back(tlc);
 			}
 
 			//Region points for TRC: 
@@ -271,12 +305,13 @@ public:
 			vector<Planet> trc_planets = points_in_region((w + x) / 2, y, w, (y + h) / 2, this->region_planets);
 			if ((int)trc_planets.size() > max)
 			{
-				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max);
+				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max, leaf_list);
 				trc->subdivide();
 			}
 			else
 			{
-				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max);
+				trc = new Quadtree(this, (w + x) / 2, y, w, (y + h) / 2, trc_planets, new_depth, max, leaf_list);
+				if (trc->region_planets.size() > 0) leaf_list->push_back(trc);
 			}
 			
 			//Region points for BLC: 
@@ -284,51 +319,36 @@ public:
 			vector<Planet> blc_planets = points_in_region(x, (y + h) / 2, (x + w) / 2, h, this->region_planets);
 			if ((int)blc_planets.size() > max)
 			{
-				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max);
+				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max, leaf_list);
 				blc->subdivide();
 			}
 			else
 			{
-				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max);
+				blc = new Quadtree(this, x, (y + h) / 2, (x + w) / 2, h, blc_planets, new_depth, max, leaf_list);
+				if (blc->region_planets.size() > 0) leaf_list->push_back(blc);
+				
 			}
 			//Region points for BRC:
 			// (w + x) / 2, (y + h) / 2, w, h
 			vector<Planet> brc_planets = points_in_region((w + x) / 2, (y + h) / 2, w, h, this->region_planets);
 			if ((int)brc_planets.size() > max)
 			{
-				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max);
+				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max, leaf_list);
 				brc->subdivide();
 			}
 			else
 			{
-				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max);
+				brc = new Quadtree(this, (w + x) / 2, (y + h) / 2, w, h, brc_planets, new_depth, max, leaf_list);
+				if (brc->region_planets.size() > 0) leaf_list->push_back(brc);
 			}
+		}
+		else
+		{
+			if (this->region_planets.size() > 0) leaf_list->push_back(this);
 		}
 	}
 
-	Quadtree(Quadtree* parent, float x, float y, float w, float h, vector<Planet> planet_list, int depth, int max)	//Generates a quadtree and returns a pointer
-	{
-		this->x = x;
-		this->y = y;
-		this->w = w;
-		this->h = h;
-		this->parent = parent;
-		this->tlc = nullptr;
-		this->trc = nullptr;
-		this->blc = nullptr;
-		this->brc = nullptr;
-
-		this->region_planets = planet_list;
-		this->depth = depth;
-		this->max = max;
-		check_root();	//Determines if the Quadtree has a parent node and configures the bool accordingly
-		
-		this->center = { (x + w) / 2, (y + h) / 2 };
-		this->width = abs(x - w);
-		this->combined_planet_mass = calculate_region_mass();
-		this->mass_center = calculate_center_of_mass();
-		tag_planets();
-	}
+	
 };
 
 class Render
@@ -613,9 +633,17 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree)
 			Otherwise 
 				- Direct Gravity
 	*/
+
+	cout << quadtree.leaf_list->size() <<endl;
+
+
 	for (size_t i = 0; i < planets.size(); i++)
 	{
+		vector<Quadtree> comparison_list;
+		for (size_t i = 0; i < planets.size(); i++)
+		{
 
+		}
 
 	}
 
@@ -676,9 +704,11 @@ int main()
 	Quadtree* testNull = nullptr;
 
 	float width = 100;
-	Quadtree tester(testNull, -width, -width, width, width, region_planets, 0, 1);
+	vector<Quadtree*> leaf_storage;
 
+	Quadtree root(testNull, -width, -width, width, width, region_planets, 0, 1, &leaf_storage);
 
+	float g = 1.0f;
 	//--------------------------------------------------------------------------------------
 
 	while (!WindowShouldClose())
@@ -691,14 +721,16 @@ int main()
 
 		DrawFPS(5, 0);
 
-
+		leaf_storage.clear();
 		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
-		tester.update_region_planets(region_planets);	//Updates the quadtree with a pointer to all planets
-		rend.add_quadtree(&tester);						//Gives rend the quadtree pointer
-		tester.resize();								//Resizes quadtree to encapsulate all planets
-		//tester.subdivide();								//Divides the quadtree around existing planets Computation = n log n
+		root.update_region_planets(region_planets);	//Updates the quadtree with a pointer to all planets
+		rend.add_quadtree(&root);						//Gives rend the quadtree pointer
+		root.resize();								//Resizes quadtree to encapsulate all planets
+		root.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
 		gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
+		quadtree_gravity(g, region_planets, root);
+		
 
 		rend.render(region_planets);			
 		//rend.render_quadtree();							//Displays Quadtree Telemetry
