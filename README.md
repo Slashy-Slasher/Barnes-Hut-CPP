@@ -10,6 +10,9 @@
 
 <br>https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation</br>
 Largest term in O notation: n ^ 2
+At 2000 planets the sim is able to achieve 30fps
+At 4000 planets the sim is able to achieve 10fps
+The scaling is non-linear but its far faster than python was able to achieve
 # Barnes-Hut
 
 <br>https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation</br>
