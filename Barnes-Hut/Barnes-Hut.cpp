@@ -143,7 +143,7 @@ public:
 	Vector2 center;
 	vector<Planet> region_planets;	//All planets in the region
 	float combined_planet_mass;		//Mass of the region
-	vector<float> mass_center;		//Center of Mass 
+	Vector2 mass_center;		//Center of Mass 
 
 
 	float calculate_region_mass()
@@ -154,6 +154,23 @@ public:
 			temp_mass += region_planets[i].mass;
 		}
 		return temp_mass;
+	}
+	Vector2 calculate_center_of_mass()
+	{
+		float numeratorX = 0;
+		float numeratorY = 0;
+		float denominator = 0;
+		for (size_t i = 0; i < region_planets.size(); i++)
+		{
+			numeratorX += region_planets[i].position.x * region_planets[i].mass;
+			numeratorY += region_planets[i].position.y * region_planets[i].mass;
+			denominator += region_planets[i].mass;
+		}
+		if (denominator != 0)
+		{
+			return { numeratorX / denominator, numeratorY / denominator };
+		}
+		return { 0,0 };
 	}
 
 	void check_root()
@@ -219,6 +236,14 @@ public:
 			}
 		}
 		return furthest_distance;
+	}
+
+	void tag_planets()	//This tags all planets within a a region with the current node they are in
+	{
+		for (size_t i = 0; i < region_planets.size(); i++)
+		{
+			region_planets[i].node = this;
+		}
 	}
 
 	void subdivide()
@@ -298,10 +323,11 @@ public:
 		this->max = max;
 		check_root();	//Determines if the Quadtree has a parent node and configures the bool accordingly
 		
-
 		this->center = { (x + w) / 2, (y + h) / 2 };
 		this->width = abs(x - w);
 		this->combined_planet_mass = calculate_region_mass();
+		this->mass_center = calculate_center_of_mass();
+		tag_planets();
 	}
 };
 
@@ -579,13 +605,19 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree)
 	/*
 		For every planet:
 			
-			Recurse down into the tree until s/d is satisfied
+			Recurse down into the tree until theta < s/d is satisfied
+				s is the width of the region
+				d is the distance between the body and Region COM
 				- Approximate
 
 			Otherwise 
 				- Direct Gravity
 	*/
+	for (size_t i = 0; i < planets.size(); i++)
+	{
 
+
+	}
 
 
 }
@@ -666,7 +698,7 @@ int main()
 		tester.resize();								//Resizes quadtree to encapsulate all planets
 		//tester.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
-		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
+		gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
 
 		rend.render(region_planets);			
 		//rend.render_quadtree();							//Displays Quadtree Telemetry
