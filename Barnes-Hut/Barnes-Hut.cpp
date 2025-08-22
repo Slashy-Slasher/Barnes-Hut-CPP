@@ -614,6 +614,8 @@ void gravity(vector<Planet>& planets)
 	}
 }
 
+
+
 /*
 Simple method which takes the array reference and apply an ID to each planet
 */
@@ -644,25 +646,51 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vect
 	//cout << quadtree.leaf_list->size() <<endl;
 
 	//
-
+	float threshold_angle = 1;
 
 	for (size_t i = 0; i < planets.size(); i++)
 	{
 		Vector2 p1_position = planets[i].position;	//Position of the iterable planet
 		Quadtree* p1_node = planets[i].node;		//Node that the iterable planet resides in
 
-		std::vector<Quadtree*> comparison_list;   // real vector
+		vector<Quadtree*> comparison_list;   // real vector
 		comparison_list.reserve(4);
 		quadtree.return_children(&comparison_list);  // pass pointer	
+		Vector2 net_force = { 0, 0 };
 
-		for (size_t j = 0; j < leaf_storage.size(); j++)
+
+		for (size_t j = 0; j < comparison_list.size(); j++)
 		{
+			float distance = Vector2Distance(planets[i].position, comparison_list[j]->center);
 
+			if (comparison_list[j] != planets[i].node)
+			{
+				if (comparison_list[j]->width / distance < threshold_angle)
+				{
+					//Apply gravity to the planet
+					net_force += {0, 1};//
+				}
+				else
+				{
+					comparison_list[j]->return_children(&comparison_list);  // pass pointer	
+				}
+			}
+			else
+			{
+
+			}
+			
 		}
-
+		planets[i].force = net_force;
 	}
-
-
+	for (size_t i = 0; i < planets.size(); i++)
+	{
+		if (planets[i].stable == false)
+		{
+			planets[i].update_position(GetFrameTime());
+			planets[i].force = { 0, 0 }; // Reset force
+		}
+	}
 }
 
 
@@ -743,7 +771,8 @@ int main()
 		root.resize();								//Resizes quadtree to encapsulate all planets
 		root.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
-		gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
+		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
+
 		quadtree_gravity(g, region_planets, root, leaf_storage);
 		
 
