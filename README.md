@@ -13,9 +13,8 @@ Largest term in O notation: n ^ 2
 At 2000 planets the sim is able to achieve 30fps
 At 4000 planets the sim is able to achieve 10fps
 The scaling is non-linear but its far faster than python was able to achieve
-# Barnes-Hut
 
-# Quadtree Partitioning Method
+# Quadtree Partitioning Method(Barnes-Hut)
 
 <p align="center">
   <img src="videos/Quadtree-Subdivision.gif" alt="Quadtree Demo" />
