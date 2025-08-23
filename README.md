@@ -15,13 +15,7 @@ At 4000 planets the sim is able to achieve 10fps
 The scaling is non-linear but its far faster than python was able to achieve
 
 # Quadtree Partitioning Method(Barnes-Hut)
-
-<p align="center">
-  <img src="videos/Quadtree-Subdivision.gif" alt="Quadtree Demo" />
-</p>
-
 <br>[Quadtree Wikipedia](https://en.wikipedia.org/wiki/Quadtree)</br>
-
 **Largest term in O notation:** `n log n`
 
 Instead of directly calculating gravitational force between every pair of planets, the simulation recursively partitions space into quadrants. Each quadrant stores its **combined mass** and **center of mass**, allowing distant groups of planets to be approximated as a single body.
