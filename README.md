@@ -13,9 +13,18 @@ Largest term in O notation: n ^ 2
 At 2000 planets the sim is able to achieve 30fps
 At 4000 planets the sim is able to achieve 10fps
 The scaling is non-linear but its far faster than python was able to achieve
-# Barnes-Hut
 
-<br>https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation</br>
+# Quadtree Partitioning Method(Barnes-Hut)
+<br>[Quadtree Wikipedia](https://en.wikipedia.org/wiki/Quadtree)</br>
+**Largest term in O notation:** `n log n`
+
+Instead of directly calculating gravitational force between every pair of planets, the simulation recursively partitions space into quadrants. Each quadrant stores its **combined mass** and **center of mass**, allowing distant groups of planets to be approximated as a single body.
+
+- Reduces the number of force calculations dramatically compared to the brute-force `O(n^2)` method.  
+- Adaptive subdivision ensures dense regions of space are more finely partitioned, while sparse regions remain aggregated.  
+- Enables **real-time interactivity** even as the number of simulated planets grows into the thousands.  
+
+This method, combined with efficient memory management and input handling, makes the simulation significantly more scalable than brute force, while still preserving accurate orbital behavior.
 
 Largest term in O notation: n log n
 
