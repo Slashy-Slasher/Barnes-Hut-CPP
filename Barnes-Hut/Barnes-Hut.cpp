@@ -207,10 +207,10 @@ public:
 	}
 
 	void return_children(std::vector<Quadtree*>* list) const {
-		if (tlc) list->push_back(tlc);
-		if (trc) list->push_back(trc);
-		if (blc) list->push_back(blc);
-		if (brc) list->push_back(brc);
+		if (tlc && tlc->region_planets.size() > 0) list->push_back(tlc);
+		if (trc && trc->region_planets.size() > 0) list->push_back(trc);
+		if (blc && blc->region_planets.size() > 0) list->push_back(blc);
+		if (brc && brc->region_planets.size() > 0) list->push_back(brc);
 	}
 
 	void check_root()
@@ -625,7 +625,7 @@ Simple method which takes the array reference and apply an ID to each planet
 
 */
 
-void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vector<Quadtree*> leaf_storage)
+void quadtree_gravity(float gravity, vector<Planet>& planets, Quadtree& quadtree, vector<Quadtree*> leaf_storage)
 {
 	//Build the map/dictionary
 
@@ -645,10 +645,9 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vect
 
 	//cout << quadtree.leaf_list->size() <<endl;
 
-	//
 	float threshold_angle = 1;
 
-	for (size_t i = 0; i < planets.size(); i++)
+	for (size_t i = 0; i < planets.size(); i++)	//For loop 1
 	{
 		Vector2 p1_position = planets[i].position;	//Position of the iterable planet
 		Quadtree* p1_node = planets[i].node;		//Node that the iterable planet resides in
@@ -657,18 +656,31 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vect
 		comparison_list.reserve(4);
 		quadtree.return_children(&comparison_list);  // pass pointer	
 		Vector2 net_force = { 0, 0 };
+		float distance = 0;
+		Vector2 direction = { 0, 0 };
+		float force_1d = 0.0f;
 
-
-		for (size_t j = 0; j < comparison_list.size(); j++)
+		for (size_t j = 0; j < comparison_list.size(); j++)	//For loop 2
 		{
-			float distance = Vector2Distance(planets[i].position, comparison_list[j]->center);
+			
 
 			if (comparison_list[j] != planets[i].node)
 			{
+				//Easy Gravity
 				if (comparison_list[j]->width / distance < threshold_angle)
 				{
+					distance = Vector2Distance(planets[i].position, comparison_list[j]->mass_center);
+					direction = Vector2Normalize(Vector2Subtract(comparison_list[j]->mass_center, planets[i].position));
 					//Apply gravity to the planet
-					net_force += {0, 1};//
+					//net_force += {0, 1};//
+
+					if (distance != 0)	//Easiest possible guard to prevent NAN propagation
+					{
+						force_1d = (gravity * planets[i].mass * comparison_list[i]->combined_planet_mass) / (distance * distance);
+					}
+					planets[i].force += { direction.x* force_1d, direction.y* force_1d };
+					cout << "Easy Applied: " << force_1d << endl;
+
 				}
 				else
 				{
@@ -676,12 +688,31 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vect
 				}
 			}
 			else
-			{
-
+			{			//Hard Gravity
+				vector<Planet> local_sector_planets = comparison_list[i]->region_planets;
+				for (size_t i = 0; i < local_sector_planets.size(); i++)
+				{
+					for (size_t g = 0; g < local_sector_planets.size(); g++)
+					{
+						if (local_sector_planets[i].id != local_sector_planets[g].id)
+						{
+							distance = Vector2Distance(planets[i].position, planets[g].position);
+							direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
+							if (distance != 0)	//Easiest possible guard to prevent NAN propagation
+							{
+								force_1d = (gravity * local_sector_planets[i].mass * local_sector_planets[g].mass) / (distance * distance);
+							}
+							local_sector_planets[i].force += { direction.x* force_1d, direction.y* force_1d };
+							cout << "Hard Applied: " << force_1d << endl;
+						}
+					}
+					force_1d = 0.0f;
+				}
 			}
 			
 		}
-		planets[i].force = net_force;
+		//cout << "Comparison_list size: " << comparison_list.size() << endl;
+		comparison_list.clear();
 	}
 	for (size_t i = 0; i < planets.size(); i++)
 	{
@@ -692,6 +723,7 @@ void quadtree_gravity(float g, vector<Planet>& planets, Quadtree& quadtree, vect
 		}
 	}
 }
+
 
 
 void IDize_vector(vector<Planet>& planets)
@@ -780,7 +812,7 @@ int main()
 
 		//rend.render_quadtree();							//Displays Quadtree Telemetry
 	
-		//rend.render_planet_history(region_planets);	//Draws planet history, computation = n
+		rend.render_planet_history(region_planets);	//Draws planet history, computation = n
 
 		rend.render_selected_planet_hud();
 		input.handle_inputs();
