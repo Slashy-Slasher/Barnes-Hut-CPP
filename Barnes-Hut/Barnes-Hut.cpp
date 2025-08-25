@@ -289,13 +289,15 @@ public:
 			region_planets[i].node = this;
 		}
 	}
+
 	void add_divider_lines(Quadtree* new_node)
 	{
-		this->divider_graphics.emplace_back(((new_node->w + new_node->x) / 2, new_node->y));
-		this->divider_graphics.emplace_back(((new_node->w + new_node->x) / 2, new_node->h));
-		this->divider_graphics.emplace_back((new_node->x, (new_node->y + new_node->h) / 2));
-		this->divider_graphics.emplace_back((new_node->w, (new_node->y + new_node->h) / 2));
+		this->divider_graphics.emplace_back(Vector2{(new_node->w + new_node->x) / 2, new_node->y});
+		this->divider_graphics.emplace_back(Vector2{(new_node->w + new_node->x) / 2, new_node->h });
+		this->divider_graphics.emplace_back(Vector2{ new_node->x, (new_node->y + new_node->h) / 2 });
+		this->divider_graphics.emplace_back(Vector2{ new_node->w, (new_node->y + new_node->h) / 2 });
 	}
+
 	void subdivide()
 	{
 		//if ((w - x) <= 1e-6f || (h - y) <= 1e-6f) return; // region too thin to split safely
@@ -462,7 +464,9 @@ public:
 	//Renders the Quadtree's Graphics
 	void renderQuadtreeUI(Quadtree qt)
 	{
-		for (size_t i = 1; i < qt.divider_graphics.size(); i++)
+		const auto& g = qt.divider_graphics;
+		if (g.size() % 2 != 0) { /* log/assert: corrupted pair list */ return; }
+		for (size_t i = 1; i < qt.divider_graphics.size(); i = i+2)
 		{
 			Vector2 position_1 = world_to_screen(qt.divider_graphics[i - 1]);
 			Vector2 position_2 = world_to_screen(qt.divider_graphics[i]);
@@ -779,7 +783,8 @@ int main()
 
 	SetTargetFPS(60); // Set desired framerate (frames-per-second)
 
-	Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
+	//Vector2 planetPos = { screenWidth / 2, screenHeight / 2 };
+	Vector2 planetPos = { 0, 0 };
 	Vector2 planetPos2 = { (screenWidth / 2) + 200, screenHeight / 2};
 	Vector2 planetPos3 = { (screenWidth / 2) + 300, screenHeight / 2 };
 
