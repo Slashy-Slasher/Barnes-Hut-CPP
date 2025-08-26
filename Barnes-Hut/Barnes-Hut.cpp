@@ -36,7 +36,7 @@ public:
 
 
 	Vector2 position;
-	Quadtree* node;
+	Quadtree* node = nullptr;
 
 	vector<Vector2> area_points;	//Planned Experimental for now
 	deque<Vector2> position_history;
@@ -230,7 +230,7 @@ public:
 		this->region_planets = new_region_planets;
 	}
 
-	vector<Planet> points_in_region(float x, float y, float w, float h, vector<Planet> region_planets)
+	vector<Planet> points_in_region(float x, float y, float w, float h, const vector<Planet> region_planets)
 	{
 		//Take a list of all planets within the tree
 		//Return the a list off all planets within the sector
@@ -297,14 +297,14 @@ public:
 		this->divider_graphics.emplace_back(Vector2{ new_node->x, (new_node->y + new_node->h) / 2 });
 		this->divider_graphics.emplace_back(Vector2{ new_node->w, (new_node->y + new_node->h) / 2 });
 	}
-
+	/*
 	void subdivide()
 	{
 		//if ((w - x) <= 1e-6f || (h - y) <= 1e-6f) return; // region too thin to split safely
 		int new_depth = this->depth+1;
-		add_divider_lines(this);
-		if (region_planets.size() > max && depth < 5)
+		if (region_planets.size() > max && depth < 10)
 		{
+			add_divider_lines(this);
 			//cout << "Test: " << depth << endl;
 			//Region points for TLC: 
 			// x, y, (x + w) / 2, (y + h) / 2
@@ -374,6 +374,68 @@ public:
 		{
 			if (this->region_planets.size() > 0) leaf_list->push_back(this);
 		}
+	}
+	*/
+	void subdivide()
+	{
+		int new_depth = this->depth + 1;
+
+		// stop early if this node is a leaf
+		if (region_planets.size() <= max || depth >= 5) {
+			if (!region_planets.empty()) leaf_list->push_back(this);
+			return;
+		}
+
+		// this node actually splits → add its divider lines once
+		add_divider_lines(this);
+
+		// midpoints
+		const float mx = 0.5f * (x + w);
+		const float my = 0.5f * (y + h);
+
+		// classify in one pass
+		std::vector<Planet> tlc_planets, trc_planets, blc_planets, brc_planets;
+		tlc_planets.reserve(region_planets.size() / 4 + 1);
+		trc_planets.reserve(region_planets.size() / 4 + 1);
+		blc_planets.reserve(region_planets.size() / 4 + 1);
+		brc_planets.reserve(region_planets.size() / 4 + 1);
+
+		for (const Planet& p : region_planets) {
+			const float px = p.position.x;
+			const float py = p.position.y;
+			if (px < mx) {
+				if (py < my) tlc_planets.push_back(p);
+				else         blc_planets.push_back(p);
+			}
+			else {
+				if (py < my) trc_planets.push_back(p);
+				else         brc_planets.push_back(p);
+			}
+		}
+
+		// TLC
+		tlc = new Quadtree(this, x, y, mx, my, std::move(tlc_planets),
+			new_depth, max, leaf_list, divider_graphics);
+		if ((int)tlc->region_planets.size() > max) { tlc->subdivide(); }
+		else if (!tlc->region_planets.empty()) { leaf_list->push_back(tlc); }
+
+		// TRC
+		trc = new Quadtree(this, mx, y, w, my, std::move(trc_planets),
+			new_depth, max, leaf_list, divider_graphics);
+		if ((int)trc->region_planets.size() > max) { trc->subdivide(); }
+		else if (!trc->region_planets.empty()) { leaf_list->push_back(trc); }
+
+		// BLC
+		blc = new Quadtree(this, x, my, mx, h, std::move(blc_planets),
+			new_depth, max, leaf_list, divider_graphics);
+		if ((int)blc->region_planets.size() > max) { blc->subdivide(); }
+		else if (!blc->region_planets.empty()) { leaf_list->push_back(blc); }
+
+		// BRC
+		brc = new Quadtree(this, mx, my, w, h, std::move(brc_planets),
+			new_depth, max, leaf_list, divider_graphics);
+		if ((int)brc->region_planets.size() > max) { brc->subdivide(); }
+		else if (!brc->region_planets.empty()) { leaf_list->push_back(brc); }
 	}
 
 	
@@ -465,14 +527,24 @@ public:
 	void renderQuadtreeUI(Quadtree qt)
 	{
 		const auto& g = qt.divider_graphics;
+		Vector2 tl = world_to_screen({ qt.x, qt.y });	//Top Left Corner
+		Vector2 br = world_to_screen({ qt.w, qt.h });	//Bottom Right Corner
+
+		DrawLine(tl.x, tl.y, br.x, tl.y, RAYWHITE);
+		DrawLine(tl.x, tl.y, tl.x, br.y, RAYWHITE);
+		DrawLine(br.x, tl.y, br.x, br.y, RAYWHITE);
+		DrawLine(tl.x, br.y, br.x, br.y, RAYWHITE);
+
 		if (g.size() % 2 != 0) { /* log/assert: corrupted pair list */ return; }
 		for (size_t i = 1; i < qt.divider_graphics.size(); i = i+2)
 		{
 			Vector2 position_1 = world_to_screen(qt.divider_graphics[i - 1]);
 			Vector2 position_2 = world_to_screen(qt.divider_graphics[i]);
 
-			DrawLine(position_1.x, position_1.y, position_2.x, position_2.y, RAYWHITE);
-			cout << "rendered: " << qt.divider_graphics.size() << endl;
+			if (i < 300)
+			{
+				DrawLine(position_1.x, position_1.y, position_2.x, position_2.y, RAYWHITE);
+			}
 		}
 		qt.divider_graphics.clear();
 	}
@@ -507,6 +579,10 @@ public:
 	Render& rend;
 	vector<Planet>& planet_list;
 
+	const float ZMIN = 0.00001f;
+	const float ZMAX = 100.0f;
+	const float k = 0.2f;
+
 
 	Input_Handler(Render& rend, vector<Planet>& planet_list) 
 		: rend(rend), planet_list(planet_list) {}
@@ -536,7 +612,7 @@ public:
 			float min_impulse = 300.0f;
 			float max_impulse = 800.0f;
 
-			for (size_t i = 0; i < 2000; i++)
+			for (size_t i = 0; i < 1000; i++)
 			{
 				Planet new_planet = Planet(100, { (rend.width / 2) + min_distance + max_distance * GetRandomValue(0, 1000) / 1000.0f , rend.height / 2 }, 10, false);
 				new_planet.apply_impulse({ 0, min_impulse + max_impulse * GetRandomValue(0, 1000) / 1000.0f });
@@ -554,16 +630,42 @@ public:
 		{
 
 		}
-		if (wheel > 0) {
-			rend.zoom += zoom_level;
-			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
-			zoom_level = rend.zoom / 10;
+
+		//ZOOM
+
+		float z0 = rend.zoom;
+		float z1 = z0;
+
+		const float factor_in = 1.05f;          // +5% per tick
+		const float factor_out = 1.0f / 1.05f;   // -5% per tick
+
+		if (wheel > 0)      z1 = z0 * factor_in;
+		else if (wheel < 0) z1 = z0 * factor_out;
+
+		z1 = Clamp(z1, ZMIN, ZMAX);
+
+		// keep the world point under the mouse (or center) fixed
+		if (z1 != z0) {
+			// mouse-anchored:
+			Vector2 m = GetMousePosition();
+			// center-anchored (optional):
+			// Vector2 m = { rend.width * 0.5f, rend.height * 0.5f };
+
+			Vector2 c = rend.center;
+			Vector2 o0 = rend.offset;
+			float s = z1 / z0;
+
+			rend.offset.x = m.x - c.x - (m.x - c.x - o0.x) * s;
+			rend.offset.y = m.y - c.y - (m.y - c.y - o0.y) * s;
+
+			rend.zoom = z1;
 		}
-		else if (wheel < 0) {
-			rend.zoom -= zoom_level;
-			rend.zoom = Clamp(rend.zoom, .00001f, 100.0f);
-			zoom_level = rend.zoom / 10;
-		}
+
+
+
+		//END-ZOOM
+		
+		
 		// Left mouse button pressed
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 		{
@@ -812,7 +914,7 @@ int main()
 
 	vector<Vector2> divider_graphics = {}; // Holds the positions of the dividing walls to be rendered later, propagated during runtime
 
-	Quadtree root(testNull, -width, -width, width, width, region_planets, 0, 1, &leaf_storage, divider_graphics);
+	Quadtree root(testNull, -width, -width, width, width, region_planets, 0, 2, &leaf_storage, divider_graphics);
 
 	float g = 1.0f;
 	//--------------------------------------------------------------------------------------
@@ -828,6 +930,7 @@ int main()
 		DrawFPS(5, 0);
 
 		leaf_storage.clear();
+		divider_graphics.clear();
 		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
 		root.update_region_planets(region_planets);	//Updates the quadtree with a pointer to all planets
 		rend.add_quadtree(&root);						//Gives rend the quadtree pointer
@@ -836,13 +939,13 @@ int main()
 
 		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
 
-		quadtree_gravity(g, region_planets, root, leaf_storage);
+		//quadtree_gravity(g, region_planets, root, leaf_storage);
 
 		rend.render(region_planets);		
 
 		//rend.render_quadtree();							//Displays Quadtree Telemetry
 	
-		//rend.render_planet_history(region_planets);	//Draws planet history, computation = n
+		rend.render_planet_history(region_planets);	//Draws planet history, computation = n
 
 		rend.renderQuadtreeUI(root);
 
