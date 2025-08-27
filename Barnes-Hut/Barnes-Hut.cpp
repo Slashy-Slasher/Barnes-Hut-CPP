@@ -30,10 +30,8 @@ public:
 	//Postion += velocity*dt
 
 	Vector2 force = {0, 0};
-	//Vector2 direction; Removing direction because it makes things harder and can just be stored in force
 	Vector2 acceleration = {0, 0};
-	Vector2 velocity = {0, 0};
-
+	Vector2 velocity = { 0, 0 };
 
 	Vector2 position;
 	Quadtree* node = nullptr;
@@ -46,12 +44,6 @@ public:
 	{
 		this->mass = mass;
 		this->position = position;
-		//this->node = nullptr;
-
-		//this->velocity = Vector2Add(this->velocity, return_velocity_delta_from_force(force, GetFrameTime()));
-
-
-		//cout << "Starting Velocity: { " << this->velocity.x << ", " << this->velocity.y  << " }" << endl;
 		this->radius = radius;
 		this->stable = stable;
 	}
@@ -109,7 +101,7 @@ public:
 			<< " Accel: (" << this->acceleration.x << ", " << this->acceleration.y << ")"
 			<< " Vel: (" << this->velocity.x << ", " << this->velocity.y << ")" << endl;
 	}
-	//Might remove from this class, but it's convient to have whereever there are planets
+	//Might remove from this class, but it's convenient to have where ever there are planets
 	static void IDize_vector(vector<Planet>& planets)
 	{
 		for (size_t i = 0; i < planets.size(); i++)
@@ -141,7 +133,7 @@ public:
 
 
 	Vector2 center;
-	vector<Planet> region_planets;	//All planets in the region
+	vector<Planet*> region_planets;	//All planets in the region
 	float combined_planet_mass;		//Mass of the region
 	Vector2 mass_center;		//Center of Mass 
 
@@ -149,7 +141,7 @@ public:
 	vector<Vector2>& divider_graphics; // Holds the positions of the dividing walls to be rendered later, propagated during runtime
 
 	//Generates a quadtree and returns a pointer
-	Quadtree(Quadtree* parent, float x, float y, float w, float h, vector<Planet> planet_list, int depth, int max, vector<Quadtree*>* leaf_list, vector<Vector2>& divider_graphics)	
+	Quadtree(Quadtree* parent, float x, float y, float w, float h, vector<Planet*> planet_list, int depth, int max, vector<Quadtree*>* leaf_list, vector<Vector2>& divider_graphics)	
 		:
 		divider_graphics(divider_graphics)
 	{
@@ -188,7 +180,7 @@ public:
 		float temp_mass = 0;
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
-			temp_mass += region_planets[i].mass;
+			temp_mass += region_planets[i]->mass;
 		}
 		return temp_mass;
 	}
@@ -199,9 +191,9 @@ public:
 		float denominator = 0;
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
-			numeratorX += region_planets[i].position.x * region_planets[i].mass;
-			numeratorY += region_planets[i].position.y * region_planets[i].mass;
-			denominator += region_planets[i].mass;
+			numeratorX += region_planets[i]->position.x * region_planets[i]->mass;
+			numeratorY += region_planets[i]->position.y * region_planets[i]->mass;
+			denominator += region_planets[i]->mass;
 		}
 		if (denominator != 0)
 		{
@@ -225,7 +217,7 @@ public:
 		}
 	}
 
-	void update_region_planets(vector<Planet> new_region_planets) //Called every frame to keep the data struct and the game world aligned
+	void update_region_planets(vector<Planet*> new_region_planets) //Called every frame to keep the data struct and the game world aligned
 	{
 		this->region_planets = new_region_planets;
 	}
@@ -272,7 +264,7 @@ public:
 		
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
-			temp_distance = Vector2Distance(region_planets[i].position, center);
+			temp_distance = Vector2Distance(region_planets[i]->position, center);
 			if ( temp_distance > furthest_distance)
 			{
 				furthest_index = i;
@@ -286,7 +278,7 @@ public:
 	{
 		for (size_t i = 0; i < region_planets.size(); i++)
 		{
-			region_planets[i].node = this;
+			region_planets[i]->node = this;
 		}
 	}
 
@@ -394,22 +386,23 @@ public:
 		const float my = 0.5f * (y + h);
 
 		// classify in one pass
-		std::vector<Planet> tlc_planets, trc_planets, blc_planets, brc_planets;
+		std::vector<Planet*> tlc_planets, trc_planets, blc_planets, brc_planets;
 		tlc_planets.reserve(region_planets.size() / 4 + 1);
 		trc_planets.reserve(region_planets.size() / 4 + 1);
 		blc_planets.reserve(region_planets.size() / 4 + 1);
 		brc_planets.reserve(region_planets.size() / 4 + 1);
 
-		for (const Planet& p : region_planets) {
-			const float px = p.position.x;
-			const float py = p.position.y;
+		for (Planet* p : region_planets) {
+			const float px = p->position.x;
+			const float py = p->position.y;
+
 			if (px < mx) {
-				if (py < my) tlc_planets.push_back(p);
-				else         blc_planets.push_back(p);
+				if (py < my) tlc_planets.push_back(p);  // top-left
+				else         blc_planets.push_back(p);  // bottom-left
 			}
 			else {
-				if (py < my) trc_planets.push_back(p);
-				else         brc_planets.push_back(p);
+				if (py < my) trc_planets.push_back(p);  // top-right
+				else         brc_planets.push_back(p);  // bottom-right
 			}
 		}
 
@@ -512,7 +505,7 @@ public:
 		}
 	}
 
-	void render_quadtree()
+	void render_quadtree()	//Depreciated Method
 	{
 
 		cout << "Total: points: " << quadtree_ptr->region_planets.size()<< endl;
@@ -529,7 +522,9 @@ public:
 		const auto& g = qt.divider_graphics;
 		Vector2 tl = world_to_screen({ qt.x, qt.y });	//Top Left Corner
 		Vector2 br = world_to_screen({ qt.w, qt.h });	//Bottom Right Corner
+		
 
+		
 		DrawLine(tl.x, tl.y, br.x, tl.y, RAYWHITE);
 		DrawLine(tl.x, tl.y, tl.x, br.y, RAYWHITE);
 		DrawLine(br.x, tl.y, br.x, br.y, RAYWHITE);
@@ -540,7 +535,7 @@ public:
 		{
 			Vector2 position_1 = world_to_screen(qt.divider_graphics[i - 1]);
 			Vector2 position_2 = world_to_screen(qt.divider_graphics[i]);
-
+			
 			if (i < 300)
 			{
 				DrawLine(position_1.x, position_1.y, position_2.x, position_2.y, RAYWHITE);
@@ -821,20 +816,20 @@ void quadtree_gravity(float gravity, vector<Planet>& planets, Quadtree& quadtree
 			}
 			else
 			{			//Hard Gravity
-				vector<Planet> local_sector_planets = comparison_list[i]->region_planets;
+				vector<Planet*> local_sector_planets = comparison_list[i]->region_planets;
 				for (size_t i = 0; i < local_sector_planets.size(); i++)
 				{
 					for (size_t g = 0; g < local_sector_planets.size(); g++)
 					{
-						if (local_sector_planets[i].id != local_sector_planets[g].id)
+						if (local_sector_planets[i]->id != local_sector_planets[g]->id)
 						{
 							distance = Vector2Distance(planets[i].position, planets[g].position);
 							direction = Vector2Normalize(Vector2Subtract(planets[g].position, planets[i].position));
 							if (distance != 0)	//Easiest possible guard to prevent NAN propagation
 							{
-								force_1d = (gravity * local_sector_planets[i].mass * local_sector_planets[g].mass) / (distance * distance);
+								force_1d = (gravity * local_sector_planets[i]->mass * local_sector_planets[g]->mass) / (distance * distance);
 							}
-							local_sector_planets[i].force += { direction.x* force_1d, direction.y* force_1d };
+							local_sector_planets[i]->force += { direction.x* force_1d, direction.y* force_1d };
 							cout << "Hard Applied: " << force_1d << endl;
 						}
 					}
@@ -842,7 +837,6 @@ void quadtree_gravity(float gravity, vector<Planet>& planets, Quadtree& quadtree
 				}
 			}
 		}
-		//cout << "Comparison_list size: " << comparison_list.size() << endl;
 		comparison_list.clear();
 	}
 	for (size_t i = 0; i < planets.size(); i++)
@@ -902,6 +896,12 @@ int main()
 
 	IDize_vector(region_planets);	//I call this so that no matter how many planets are created that the IDs are assigned correctly
 
+	std::vector<Planet*> root_ptrs;
+	root_ptrs.reserve(region_planets.size());
+	for (auto& p : region_planets) root_ptrs.push_back(&p);
+
+
+
 	Input_Handler input = Input_Handler(rend, region_planets);
 
 
@@ -914,7 +914,7 @@ int main()
 
 	vector<Vector2> divider_graphics = {}; // Holds the positions of the dividing walls to be rendered later, propagated during runtime
 
-	Quadtree root(testNull, -width, -width, width, width, region_planets, 0, 2, &leaf_storage, divider_graphics);
+	Quadtree root(testNull, -width, -width, width, width, root_ptrs, 0, 2, &leaf_storage, divider_graphics);
 
 	float g = 1.0f;
 	//--------------------------------------------------------------------------------------
@@ -932,14 +932,14 @@ int main()
 		leaf_storage.clear();
 		divider_graphics.clear();
 		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
-		root.update_region_planets(region_planets);	//Updates the quadtree with a pointer to all planets
+		root.update_region_planets(root_ptrs);	//Updates the quadtree with a pointer to all planets
 		rend.add_quadtree(&root);						//Gives rend the quadtree pointer
 		root.resize();								//Resizes quadtree to encapsulate all planets
 		root.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
 		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
 
-		//quadtree_gravity(g, region_planets, root, leaf_storage);
+		quadtree_gravity(g, region_planets, root, leaf_storage);
 
 		rend.render(region_planets);		
 
