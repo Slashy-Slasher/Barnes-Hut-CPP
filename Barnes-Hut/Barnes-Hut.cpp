@@ -241,7 +241,7 @@ public:
 
 	void resize()	//Checks out of bounds, then resizes the tree
 	{
-		if (width < find_furthest_point())
+		if (this->width < find_furthest_point())
 		{
 			width = width * 2;
 			x = -width;
@@ -271,6 +271,7 @@ public:
 				furthest_distance = temp_distance;
 			}
 		}
+		cout << "Furthest Distance: " << furthest_distance << endl << "Total Planet Size: " << region_planets.size() << endl;
 		return furthest_distance;
 	}
 
@@ -368,6 +369,8 @@ public:
 		}
 	}
 	*/
+
+	//Faster Version of the subdivide method
 	void subdivide()
 	{
 		int new_depth = this->depth + 1;
@@ -409,29 +412,55 @@ public:
 		// TLC
 		tlc = new Quadtree(this, x, y, mx, my, std::move(tlc_planets),
 			new_depth, max, leaf_list, divider_graphics);
-		if ((int)tlc->region_planets.size() > max) { tlc->subdivide(); }
-		else if (!tlc->region_planets.empty()) { leaf_list->push_back(tlc); }
+		if ((int)tlc->region_planets.size() > max) 
+		{ 
+			tlc->subdivide(); 
+			add_divider_lines(tlc);
+		}
+		else if (!tlc->region_planets.empty()) 
+		{ 
+			leaf_list->push_back(tlc); 
+		}
 
 		// TRC
 		trc = new Quadtree(this, mx, y, w, my, std::move(trc_planets),
 			new_depth, max, leaf_list, divider_graphics);
-		if ((int)trc->region_planets.size() > max) { trc->subdivide(); }
-		else if (!trc->region_planets.empty()) { leaf_list->push_back(trc); }
+		if ((int)trc->region_planets.size() > max) 
+		{ 
+			trc->subdivide(); 
+			add_divider_lines(trc);
+		}
+		else if (!trc->region_planets.empty()) 
+		{ 
+			leaf_list->push_back(trc);
+		}
 
 		// BLC
 		blc = new Quadtree(this, x, my, mx, h, std::move(blc_planets),
 			new_depth, max, leaf_list, divider_graphics);
-		if ((int)blc->region_planets.size() > max) { blc->subdivide(); }
-		else if (!blc->region_planets.empty()) { leaf_list->push_back(blc); }
+		if ((int)blc->region_planets.size() > max) 
+		{ 
+			blc->subdivide(); 
+			add_divider_lines(blc);
+		}
+		else if (!blc->region_planets.empty()) 
+		{ 
+			leaf_list->push_back(blc); 
+		}
 
 		// BRC
 		brc = new Quadtree(this, mx, my, w, h, std::move(brc_planets),
 			new_depth, max, leaf_list, divider_graphics);
-		if ((int)brc->region_planets.size() > max) { brc->subdivide(); }
-		else if (!brc->region_planets.empty()) { leaf_list->push_back(brc); }
+		if ((int)brc->region_planets.size() > max) 
+		{ 
+			brc->subdivide(); 
+			add_divider_lines(brc);
+		}
+		else if (!brc->region_planets.empty()) 
+		{ 
+			leaf_list->push_back(brc);
+		}
 	}
-
-	
 };
 
 class Render
@@ -931,15 +960,22 @@ int main()
 
 		leaf_storage.clear();
 		divider_graphics.clear();
+
 		//Quadtree tester(testNull, 0.0f, 0.0f, 100.0f, 100.0f, region_planets, 0, 10);
-		root.update_region_planets(root_ptrs);	//Updates the quadtree with a pointer to all planets
-		rend.add_quadtree(&root);						//Gives rend the quadtree pointer
+
+		root.update_region_planets(root_ptrs);		//Updates the quadtree with a pointer to all planets
+		rend.add_quadtree(&root);					//Gives rend the quadtree pointer
+
 		root.resize();								//Resizes quadtree to encapsulate all planets
-		root.subdivide();								//Divides the quadtree around existing planets Computation = n log n
 
-		//gravity(region_planets);						// Runs classic newtonian gravity. Computation = n^2
+		cout << root.width << endl;
 
-		quadtree_gravity(g, region_planets, root, leaf_storage);
+
+		root.subdivide();							//Divides the quadtree around existing planets Computation = n log n
+
+		gravity(region_planets);					// Runs classic newtonian gravity. Computation = n^2
+
+		//quadtree_gravity(g, region_planets, root, leaf_storage);
 
 		rend.render(region_planets);		
 
