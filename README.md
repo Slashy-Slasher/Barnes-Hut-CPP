@@ -33,6 +33,12 @@ This project is my 3rd iteration on the concept of a solar simulation and my 2nd
 While I've already done this project before, this has already proven to have it's own unique challenges.
 
 
+## Usage of Pointers
+
+Because this is my second project using C++, pointers and references are becoming more and more common in my style of programming. Using a book I found on my shelf named "How to Program C++".
+
+I switched the quadtree from storing planets by value to storing pointers to the same planets in memory. Before that I was tagging copies inside nodes, so the real planets never knew their node and the gravity step did nothing. With pointers every node references the real objects, tagging works, and forces apply to the actual bodies. I build a simple vector of Planet* from the main list each frame, or reserve space up front to keep addresses stable. This cut out extra copies, removed the need to stamp data back, and gave me a nice speed boost. I also keep one shared divider_graphics reference so all nodes write to the same draw buffer.
+
 
 
 ## CMAKE
